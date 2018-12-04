@@ -2,7 +2,7 @@
 
 set -x
 
-PACKER_URL= https://releases.hashicorp.com/packer/1.3.2/packer_1.3.2_linux_amd64.zip
+PACKER_URL=https://releases.hashicorp.com/packer/1.3.2/packer_1.3.2_linux_amd64.zip
 PLUGIN_URL=https://github.com/solo-io/packer-builder-arm-image
 
 # Install Packer
