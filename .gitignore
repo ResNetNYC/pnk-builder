@@ -3,3 +3,8 @@ packer_cache/
 
 # For built boxes
 *.box
+
+# Build artifacts
+packer-builder-arm-image-master/
+builder.zip
+packer.zip
