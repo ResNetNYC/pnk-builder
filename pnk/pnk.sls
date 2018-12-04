@@ -3,7 +3,8 @@
 
 docker:
   pkg.installed:
-    - python-docker
+    - pkgs:
+      - python-docker
 
 mariadb:
   docker_container.running:
