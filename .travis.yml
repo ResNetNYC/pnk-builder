@@ -1,4 +1,8 @@
-language: minimal
+language: go
+go:
+  - 1.11.x
+git:
+  depth: 1
 cache:
   directories:
   - packer_cache
@@ -9,8 +13,8 @@ addons:
     packages:
     - kpartx
     - qemu-user-static
-    - go-dep
-install:
+install: true
+before_script:
 - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 - wget https://github.com/solo-io/packer-builder-arm-image/archive/master.zip -O builder.zip
 - unzip builder.zip
