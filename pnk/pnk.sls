@@ -1,11 +1,27 @@
 # -*- coding: utf-8 -*-
 # vim: ft=sls
 
-docker:
+Install Docker python bindings:
   pkg.installed:
     - pkgs:
       - python-docker
     - reload_modules: True
+
+Download Docker install script:
+  cmd.run:
+    - curl -fsSL https://get.docker.com -o get-docker.sh
+
+Run Docker install script:
+  cmd.run:
+    - sh get-docker.sh
+  require:
+    - cmd: Download Docker install script
+
+Run Docker:
+  service.running:
+    - name: docker
+    - require:
+      - cmd: Run Docker install script
 
 mariadb:
   docker_container.running:
@@ -21,6 +37,8 @@ mariadb:
       - MYSQL_DATABASE: wordpress
       - MYSQL_USER: wordpress
       - MYSQL_PASSWORD: wordpress
+    - require:
+      - service: Run Docker
 
 wordpress:
   docker_container.running:
@@ -41,6 +59,7 @@ wordpress:
       - WORDPRESS_DB_PASSWORD: wordpress
     - require:
       - docker_container: mariadb
+      - service: Run Docker
 
 unifi:
   docker_container.running:
@@ -65,6 +84,8 @@ unifi:
       - 3478/udp
       - 6789
       - 10001/udp
+    - require:
+      - service: Run Docker
 
 unifi_config:
   docker_volume.present:
