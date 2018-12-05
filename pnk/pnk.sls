@@ -9,11 +9,11 @@ Install Docker python bindings:
 
 Download Docker install script:
   cmd.run:
-    - curl -fsSL https://get.docker.com -o get-docker.sh
+    - name: curl -fsSL https://get.docker.com -o get-docker.sh
 
 Run Docker install script:
   cmd.run:
-    - sh get-docker.sh
+    - name: sh get-docker.sh
   require:
     - cmd: Download Docker install script
 
