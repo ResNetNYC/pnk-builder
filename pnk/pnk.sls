@@ -5,6 +5,7 @@ docker:
   pkg.installed:
     - pkgs:
       - python-docker
+    - reload_modules: True
 
 mariadb:
   docker_container.running:
