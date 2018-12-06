@@ -1,27 +1,39 @@
 # -*- coding: utf-8 -*-
 # vim: ft=sls
 
-Install Docker python bindings:
+Install Docker repo dependencies:
   pkg.installed:
     - pkgs:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+
+Setup Docker apt repository:
+  pkgrepo.managed:
+{% if grains['osarch'] != 'x86_64' %}
+    - name: deb https://download.docker.com/linux/raspbian stretch edge
+{% else %}
+    - name: deb https://download.docker.com/linux/ubuntu stretch edge
+{% endif %}
+    - file: /etc/apt/sources.list.d/docker.list
+    - require:
+      - pkg: Install Docker repo dependencies
+    - key_url: https://download.docker.com/linux/raspbian/gpg
+
+Install Docker and bindings:
+  pkg.installed:
+    - pkgs:
+      - docker-ce
       - python-docker
+    - require:
+      - pkgrepo: Setup Docker apt repository
     - reload_modules: True
-
-Download Docker install script:
-  cmd.run:
-    - name: curl -fsSL https://get.docker.com -o get-docker.sh
-
-Run Docker install script:
-  cmd.run:
-    - name: sh get-docker.sh
-  require:
-    - cmd: Download Docker install script
 
 Run Docker:
   service.running:
     - name: docker
     - require:
-      - cmd: Run Docker install script
+      - pkg: Install Docker and bindings
 
 mariadb:
   docker_container.running:
@@ -66,7 +78,7 @@ unifi:
     - name: unifi
     - restart_policy: always
 {% if grains['osarch'] != 'x86_64' %}
-    - imaage: ryansch/unifi-rpi:latest
+    - image: ryansch/unifi-rpi:latest
     - binds:
       - unifi_config:/var/lib/unifi:rw
       - unifi_logs:/var/log/unifi:rw
