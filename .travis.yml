@@ -17,7 +17,7 @@ install: true
 before_script:
 - bash ./setup.sh
 script:
-- sudo ./packer build ./pnk.json
+- sudo ./packer build -debug ./pnk.json
 deploy:
   provider: releases
   api_key:
