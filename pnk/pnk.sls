@@ -37,7 +37,6 @@ Install Docker and bindings:
 Run Docker:
   cmd.run:
     - name: docker -H fd://
-    - bg: True
 
 mariadb:
   docker_container.running:
