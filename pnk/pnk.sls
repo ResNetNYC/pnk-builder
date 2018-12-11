@@ -29,11 +29,15 @@ Install Docker and bindings:
       - pkgrepo: Setup Docker apt repository
     - reload_modules: True
 
+#Run Docker:
+#  service.running:
+#    - name: docker
+#    - require:
+#      - pkg: Install Docker and bindings
 Run Docker:
-  service.running:
-    - name: docker
-    - require:
-      - pkg: Install Docker and bindings
+  cmd.run:
+    - name: docker -H fd://
+    - bg: True
 
 mariadb:
   docker_container.running:
@@ -50,7 +54,8 @@ mariadb:
       - MYSQL_USER: wordpress
       - MYSQL_PASSWORD: wordpress
     - require:
-      - service: Run Docker
+      #      - service: Run Docker
+      - cmd: Run Docker
 
 wordpress:
   docker_container.running:
@@ -71,7 +76,8 @@ wordpress:
       - WORDPRESS_DB_PASSWORD: wordpress
     - require:
       - docker_container: mariadb
-      - service: Run Docker
+      #- service: Run Docker
+      - cmd: Run Docker
 
 unifi:
   docker_container.running:
@@ -97,7 +103,8 @@ unifi:
       - 6789
       - 10001/udp
     - require:
-      - service: Run Docker
+      #- service: Run Docker
+      - cmd: Run Docker
 
 unifi_config:
   docker_volume.present:
