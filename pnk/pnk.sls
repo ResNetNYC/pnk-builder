@@ -32,7 +32,7 @@ Install Docker and bindings:
 #      - pkg: Install Docker and bindings
 Run Docker:
   cmd.run:
-    - name: docker -l debug -H unix:///var/run/docker.sock
+    - name: dockerd -H fd:///
 
 mariadb:
   docker_container.running:
