@@ -6,5 +6,8 @@ packer_cache/
 
 # Build artifacts
 packer-builder-arm-image-master/
+output-arm-image/
 builder.zip
 packer.zip
+packer
+packer-builder-arm-image

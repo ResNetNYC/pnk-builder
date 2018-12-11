@@ -8,9 +8,16 @@
     "iso_checksum":"47ef1b2501d0e5002675a50b6868074e693f78829822eef64f3878487953234d"
   }],  
   "provisioners": [
-  {
-    "type": "salt-masterless",
-    "local_state_tree": "./pnk"
-  }
+    {
+    "type": "shell",
+    "inline": [
+        "locale-gen en_US.UTF-8",
+        "update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8"
+    ]
+    },
+    {
+      "type": "salt-masterless",
+      "local_state_tree": "./pnk"
+    }
   ]
 }
