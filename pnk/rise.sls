@@ -10,11 +10,11 @@ Install Docker repo dependencies:
 
 Setup Docker apt repository:
   pkgrepo.managed:
-    - name: deb https://download.docker.com/linux/raspbian stretch edge
+    - name: deb https://download.docker.com/linux/ubuntu stretch edge
     - file: /etc/apt/sources.list.d/docker.list
     - require:
       - pkg: Install Docker repo dependencies
-    - key_url: https://download.docker.com/linux/raspbian/gpg
+    - key_url: https://download.docker.com/linux/ubuntu/gpg
 
 Install Docker and bindings:
   pkg.installed:
@@ -25,19 +25,16 @@ Install Docker and bindings:
       - pkgrepo: Setup Docker apt repository
     - reload_modules: True
 
-#Run Docker:
-#  service.running:
-#    - name: docker
-#    - require:
-#      - pkg: Install Docker and bindings
 Run Docker:
-  cmd.run:
-    - name: docker -l debug -H unix:///var/run/docker.sock
+  service.running:
+    - name: docker
+    - require:
+      - pkg: Install Docker and bindings
 
 mariadb:
   docker_container.running:
     - name: mariadb
-    - image: arm64v8/mariadb:10
+    - image: mariadb:10
     - restart_policy: always
     - environment:
       - MYSQL_RANDOM_ROOT_PASSWORD: yes
@@ -51,7 +48,7 @@ mariadb:
 wordpress:
   docker_container.running:
     - name: wordpress
-    - image: arm64v8/wordpress:4
+    - image: wordpress:4
     - port_bindings:
       - 80
     - links:
@@ -70,10 +67,10 @@ unifi:
   docker_container.running:
     - name: unifi
     - restart_policy: always
-    - image: ryansch/unifi-rpi:latest
+    - image: jacobalberty/unifi:5.9
     - binds:
-      - unifi_config:/var/lib/unifi:rw
-      - unifi_logs:/var/log/unifi:rw
+      - unifi_config:/unifi/data:rw
+      - unifi_logs:/unifi/log:rw
     - port_bindings:
       - 8080
       - 8443
