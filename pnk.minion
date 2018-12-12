@@ -1,0 +1,11 @@
+file_client: local
+gitfs_provider: pygit2
+fileserver_backend:
+  - roots
+  - git
+gitfs_remotes:
+  - git://github.com/saltstack-formulas/nginx-formula.git
+  - git://github.com/saltstack-formulas/mysql-formula.git
+  - git://github.com/saltstack-formulas/php-formula.git
+  - git://github.com/saltstack-formulas/wordpress-formula.git
+
