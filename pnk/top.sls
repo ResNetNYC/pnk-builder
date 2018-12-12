@@ -1,7 +1,10 @@
 base:
   'os:Raspbian':
     - match: grain
-    - pnk
+    - mysql
+    - php
+    - apache 
+    - wordpress
   'os:Ubuntu':
     - match: grain
     - rise
