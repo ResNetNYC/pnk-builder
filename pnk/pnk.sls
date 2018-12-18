@@ -25,73 +25,35 @@ Install Docker and bindings:
       - pkgrepo: Setup Docker apt repository
     - reload_modules: True
 
-#Run Docker:
-#  service.running:
-#    - name: docker
-#    - require:
-#      - pkg: Install Docker and bindings
-Run Docker:
-  cmd.run:
-    - name: dockerd -H fd:///
+Configure saltroots:
+  file.serialize:
+    - name: /srv/salt/top.sls
+    - makedirs: True
+    - mode: 644
+    - dataset:
+      base:
+        '*':
+          - pnk_deploy
+    - formatter: yaml
 
-mariadb:
-  docker_container.running:
-    - name: mariadb
-    - image: arm64v8/mariadb:10
-    - restart_policy: always
-    - environment:
-      - MYSQL_RANDOM_ROOT_PASSWORD: yes
-      - MYSQL_DATABASE: wordpress
-      - MYSQL_USER: wordpress
-      - MYSQL_PASSWORD: wordpress
+Deploy state:
+  file.managed:
+    - name: /srv/salt/pnk_deploy.sls
+    - source: salt://pnk_deploy.sls
+    - mode: 644
+    - makedirs: True
+
+Systemd unit:
+  file.managed:
+    - name: /etc/systemd/system/salt.service
+    - source: salt://pnk/files/salt.service
+    - user: root
+    - group: root
+    - mode: 644
+
+Enable unit:
+  file.symlink:
+    - name: /etc/systemd/system/multi-user.target.wants/salt.service
+    - target: /etc/systemd/system/salt.service
     - require:
-      #      - service: Run Docker
-      - cmd: Run Docker
-
-wordpress:
-  docker_container.running:
-    - name: wordpress
-    - image: arm64v8/wordpress:4
-    - port_bindings:
-      - 80
-    - links:
-      - mariadb:db
-    - restart_policy: always
-    - environment:
-      - WORDPRESS_DB_HOST: db:3306
-      - WORDPRESS_DB_USER: wordpress
-      - WORDPRESS_DB_PASSWORD: wordpress
-    - require:
-      - docker_container: mariadb
-      #- service: Run Docker
-      - cmd: Run Docker
-
-unifi:
-  docker_container.running:
-    - name: unifi
-    - restart_policy: always
-    - image: ryansch/unifi-rpi:latest
-    - binds:
-      - unifi_config:/var/lib/unifi:rw
-      - unifi_logs:/var/log/unifi:rw
-    - port_bindings:
-      - 8080
-      - 8443
-      - 8843
-      - 8880
-      - 3478/udp
-      - 6789
-      - 10001/udp
-    - require:
-      #- service: Run Docker
-      - cmd: Run Docker
-
-unifi_config:
-  docker_volume.present:
-    - name: unifi_config
-    - driver: local
-
-unifi_logs:
-  docker_volume.present:
-    - name: unifi_logs
-    - driver: local
+      - file: Systemd unit

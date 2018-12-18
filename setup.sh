@@ -5,6 +5,17 @@ set -x
 PACKER_URL=https://releases.hashicorp.com/packer/1.3.2/packer_1.3.2_linux_amd64.zip
 PLUGIN_URL=https://github.com/solo-io/packer-builder-arm-image
 
+# Pull Docker images
+docker pull arm64v8/mariadb:10
+docker pull arm64v8/wordpress:4
+docker pull ryansch/unifi-rpi:latest
+
+# Save Docker images
+mkdir import
+docker save -o import/mariadb.docker arm64v8/mariadb:10
+docker save -o import/wordpress.docker arm64v8/wordpress:4
+docker save -o import/unifi.docker ryansch/unifi-rpi:latest
+
 # Install Packer
 wget ${PACKER_URL} -O packer.zip
 unzip packer.zip packer

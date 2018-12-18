@@ -1,0 +1,11 @@
+[Unit]
+Description=Salt masterless
+#Requires=network-online.target
+#After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/salt-call state.highstate
+
+[Install]
+WantedBy=multi-user.target
