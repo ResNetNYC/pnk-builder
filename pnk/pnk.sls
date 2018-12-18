@@ -31,9 +31,9 @@ Configure saltroots:
     - makedirs: True
     - mode: 644
     - dataset:
-      base:
-        '*':
-          - pnk_deploy
+        base:
+          '*':
+            - pnk_deploy
     - formatter: yaml
 
 Deploy state:
@@ -46,7 +46,7 @@ Deploy state:
 Systemd unit:
   file.managed:
     - name: /etc/systemd/system/salt.service
-    - source: salt://pnk/files/salt.service
+    - source: salt://files/salt.service
     - user: root
     - group: root
     - mode: 644
