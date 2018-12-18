@@ -23,7 +23,7 @@ deploy:
   provider: releases
   api_key:
     secure: JCaYaiA2Ml4xiNkcxJPp42/9vs2GV/qP3BOukWpyX56JLpTaPgFcvNYfIvZN7907YBO6y8TZhn5hGgxhm2aNGvWlqi4cM8DKQfVjIxWkakN/XsFFoEDLyP7h34d9TU5xuB2CGXA6IEzEnNgLnfu3+5lFQEU9hhC7EwnsyXm/emtnyhfYFI+qXfdxM2M2sptbT9OaAaPhkKDtH2o6XuGwQwQZCAaJa8rRaYlLkpq685cpDCsueq9lJRpHKyOKnhQnI1nn+q9tegsRrCsJVjSKHtD3tUqagTTejvmeDCMfZYzJMIv+uZI6rVHYeK5EPFVP2m5i042ha19WYVrQkI3sqYPEMgtNxzZByBUh1gNzAHppDWY3dYwaTwe5NIxkw4vRsVPtIxmj0Ait8SY7FWL2mYFXN+8PDyBsYbUPyKB1Xk5766lt8ChxVHiImliIxzPA3wpYpzzT8INfpYpFThoa8jjhl52B+sXR2JtmlHxgh/GM8C3vJIYb4rq+ckTYa8W98n8QZxPlcFw0PoggimgrV9yJ3XDcdsQXbIhmPInTxI5Jt9d+NvI8JpSvooQ5nu/U9bc++Sc8jwZ6elODxwei3yJ1FEy47uIoRVpzbzdHkOxEYSJb5FXLZI0eU0WP0wK36AU0dDz2kEhajCZiXqTpbFROWFubwzYsoah2hLBzNBg=
-  file: packer-builder-arm-image-master/output-arm-image.img
+  file: packer-builder-arm-image-master/image
   skip_cleanup: true
   draft: true
   on:
