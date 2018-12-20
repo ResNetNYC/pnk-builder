@@ -28,6 +28,12 @@
       "minion_config": "./pnk.minion",
       "local_pillar_roots": "./pillar",
       "local_state_tree": "./pnk"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "while pidof python; do echo 'Waiting for Salt to finish running...'; sleep 1; done"
+      ]
     }
   ]
 }
