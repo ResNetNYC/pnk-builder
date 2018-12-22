@@ -10,6 +10,11 @@
   }],  
   "provisioners": [
     {
+      "type": "file",
+      "source": "import",
+      "destination": "/srv/import"
+    },
+    {
       "type": "shell",
       "inline": [
         "echo \"en_US.UTF-8 UTF-8\" > /etc/locale.gen",
@@ -23,6 +28,12 @@
       "minion_config": "./pnk.minion",
       "local_pillar_roots": "./pillar",
       "local_state_tree": "./pnk"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "lsof"
+      ]
     }
   ]
 }
