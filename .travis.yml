@@ -14,6 +14,7 @@ addons:
     packages:
     - kpartx
     - qemu-user-static
+    - lsof
 services:
   - docker
 install: true
