@@ -28,12 +28,6 @@
       "minion_config": "./pnk.minion",
       "local_pillar_roots": "./pillar",
       "local_state_tree": "./pnk"
-    },
-    {
-      "type": "shell",
-      "inline": [
-        "sleep 10"
-      ]
     }
   ]
 }

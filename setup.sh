@@ -4,6 +4,8 @@ set -x
 
 PACKER_URL=https://releases.hashicorp.com/packer/1.3.2/packer_1.3.2_linux_amd64.zip
 PLUGIN_URL=https://github.com/solo-io/packer-builder-arm-image
+# Save pwd
+SRCDIR=`pwd`
 
 # Pull Docker images
 docker pull arm64v8/mariadb:10
@@ -33,6 +35,8 @@ pushd $GOPATH/src/github.com/solo-io/
 rm -rf packer-builder-arm-image
 git clone --depth 1 ${PLUGIN_URL} packer-builder-arm-image
 pushd ./packer-builder-arm-image
+# Patch to force unmount
+patch -p1 < $SRCDIR/force-unmount.patch
 go build
 
 # Check if plugin built and copy into place
