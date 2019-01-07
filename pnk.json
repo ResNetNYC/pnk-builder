@@ -20,7 +20,7 @@
         "echo \"en_US.UTF-8 UTF-8\" > /etc/locale.gen",
         "/usr/sbin/locale-gen",
         "/usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8",
-        "apt-get -qq update && apt-get install -y --no-install-recommends git python-pygit2"
+        "apt-get -qq update && apt-get install -y --no-install-recommends git python-pygit2 lsof"
       ]
     },
     {
@@ -28,6 +28,12 @@
       "minion_config": "./pnk.minion",
       "local_pillar_roots": "./pillar",
       "local_state_tree": "./pnk"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "lsof /tmp/*"
+      ]
     }
   ]
 }
