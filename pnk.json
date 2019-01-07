@@ -32,7 +32,7 @@
     {
       "type": "shell",
       "inline": [
-        "lsof /tmp/*"
+        "sleep 10"
       ]
     }
   ]
