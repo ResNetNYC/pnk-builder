@@ -10,11 +10,6 @@
   }],  
   "provisioners": [
     {
-      "type": "file",
-      "source": "import",
-      "destination": "/srv/import"
-    },
-    {
       "type": "shell",
       "inline": [
         "echo \"en_US.UTF-8 UTF-8\" > /etc/locale.gen",
