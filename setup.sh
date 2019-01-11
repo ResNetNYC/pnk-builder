@@ -43,24 +43,29 @@ setup_chroot() {
     fi
 
     local image_pattern="$temp_dir/*.img"
-    local image=( "$image_pattern" )
-    kpartx -a -v "$image" || {
-        echo "Failed to mount raspbian, invalid image?"
+    local image=( $image_pattern )
+    kpartx -a -v "${image[@]}" || {
+        echo "Failed to map raspbian, invalid image?"
         return 1
     }
 
+    local partition1_pattern="/dev/mapper/loop*p1"
+    local partition2_pattern="/dev/mapper/loop*p2"
+    local partition1=( $partition1_pattern )
+    local partition2=( $partition2_pattern )
     {
-        mount /dev/loop0p2 "$mount_dir" && \
-        mount /dev/loop0p1 "$mount_dir/boot/" && \
+        mount "${partition2[@]}" "$mount_dir" && \
+        mount "${partition1[@]}" "$mount_dir/boot/" && \
         mount -t proc proc "$mount_dir/proc/" && \
         mount -t sysfs sys "$mount_dir/sys/" && \
         mount -o bind /dev "$mount_dir/dev/"
+        mount -t devpts devpts "$mount_dir/dev/pts"
     } || {
         echo "Failed to mount chroot system directories."
         return 1
     }
 
-    chroot "$mount_dir" bash -c \
+    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c \
     "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
     /usr/sbin/locale-gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
@@ -86,7 +91,8 @@ setup_salt() {
         return 1
     fi
 
-    chroot "$mount_dir" bash -c "/bootstrap-salt.sh" || {
+    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/bin/chmod 775 /bootstrap-salt.sh && \
+        /bootstrap-salt.sh" || {
         echo "Salt-bootstrap execution failed."
         return 1
     }
@@ -118,9 +124,10 @@ setup_docker() {
 }
 
 main() {
-    trap "{ rc="$?"; umount -R -f "$PNK_MOUNT_DIR"; rm -rf "$PNK_TEMP_DIR"; exit "$?" }" EXIT
+    trap "{ rc="$?"; umount -R -f "$PNK_MOUNT_DIR" || true; dmsetup remove_all || true; [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR" || true; exit "$?"; }" EXIT
 
     check_bin curl
+    check_bin dmsetup
     check_bin docker
     check_bin kpartx
     check_bin mkdir
