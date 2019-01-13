@@ -50,18 +50,14 @@ setup_chroot() {
     local -r image="$1"
     local -r mount_dir="$2"
 
-    kpartx -a -v "$image" || {
+    local output=( $(kpartx -a -v "$image") ) || {
         echo "Failed to map raspbian, invalid image?"
         return 1
     }
 
-    local partition1_pattern="/dev/mapper/loop*p1"
-    local partition2_pattern="/dev/mapper/loop*p2"
-    local partition1=( $partition1_pattern )
-    local partition2=( $partition2_pattern )
     {
-        mount "${partition2[@]}" "$mount_dir" && \
-        mount "${partition1[@]}" "$mount_dir/boot/" && \
+        mount "/dev/mapper/${output[11]}" "$mount_dir" && \
+        mount "/dev/mapper/${output[2]}" "$mount_dir/boot/" && \
         mount -t proc proc "$mount_dir/proc/" && \
         mount -t sysfs sys "$mount_dir/sys/" && \
         mount -t devtmpfs dev "$mount_dir/dev/" && \
