@@ -157,7 +157,7 @@ main() {
         fi
     done
 
-    local image="${url##*/}"
+    local image="${PNK_RPI_IMAGE_URL##*/}"
     image="${image%.zip}.img"
     download_raspbian "$PNK_RPI_IMAGE_URL" "$PNK_RPI_IMAGE_SHA256SUM" "$PNK_CACHE_DIR" "$PNK_TEMP_DIR" || exit 1
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
