@@ -50,9 +50,7 @@ setup_chroot() {
     local -r image="$1"
     local -r mount_dir="$2"
 
-    local image_pattern="$temp_dir/*.img"
-    local image=( $image_pattern )
-    kpartx -a -v "${image[@]}" || {
+    kpartx -a -v "$image" || {
         echo "Failed to map raspbian, invalid image?"
         return 1
     }
