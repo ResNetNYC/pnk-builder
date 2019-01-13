@@ -50,7 +50,7 @@ setup_chroot() {
     local -r image="$1"
     local -r mount_dir="$2"
 
-    local output=( $(kpartx -a -v "$image") ) || {
+    local output=( $(kpartx -s -a -v "$image") ) || {
         echo "Failed to map raspbian, invalid image?"
         return 1
     }
