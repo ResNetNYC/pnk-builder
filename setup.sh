@@ -11,6 +11,7 @@ PNK_CONTAINERS=( "arm64v8/mariadb:10" "arm64v8/wordpress:4" "ryansch/unifi-rpi:l
 : ${PNK_CACHE_DIR:="$PNK_TEMP_DIR/cache"}
 : ${PNK_MOUNT_DIR:="$PNK_TEMP_DIR/mnt"}
 : ${PNK_BUILD_DIR:="$PWD/build"}
+: ${PNK_OUTPUT_FILE:="$PWD/build/pnk-$(date +%Y%m%dT%H%M%S).img"}
 
 
 check_bin() {
@@ -18,29 +19,36 @@ check_bin() {
     hash "$cmd" 2>/dev/null || { printf "Need command %s but it is not found. Aborting." "$cmd"; exit 1; }
 }
 
-setup_chroot() {
+download_raspbian() {
     local -r url="$1"
     local -r sha256sum="$2"
-    local -r temp_dir="$3"
-    local -r cache_dir="$4"
-    local -r mount_dir="$5"
+    local -r cache_dir="$3"
+    local -r temp_dir="$4"
+    local -r file="${url##*/}"
+
     # Download Raspbian
-    if [[ ! -e "$cache_dir/raspbian.zip" ]]; then
-        curl -o "$cache_dir/raspbian.zip" -L "$url" ||
+    if [[ ! -e "$cache_dir/$file" ]]; then
+        curl -L "$url" ||
             { echo "Failed to download raspbian."; return 1; }
     fi
     
-    if ! ( echo "$sha256sum $cache_dir/raspbian.zip" | sha256sum -c ); then
+    if ! ( echo "$sha256sum $cache_dir/$file" | sha256sum -c ); then
         echo "Invalid checksum for raspbian image."
-        rm -f "$cache_dir/raspbian.zip"
+        rm -f "$cache_dir/$file"
         return 1
     else
-        unzip -d "$temp_dir" "$cache_dir/raspbian.zip" || {
+        unzip -d "$temp_dir" "$cache_dir/$file" || {
             echo "Failed to unpack raspbian, invalid zip?"
-            rm -f "$cache_dir/raspbian.zip"
+            rm -f "$cache_dir/$file"
             return 1
         }
     fi
+}
+
+
+setup_chroot() {
+    local -r image="$1"
+    local -r mount_dir="$2"
 
     local image_pattern="$temp_dir/*.img"
     local image=( $image_pattern )
@@ -58,7 +66,7 @@ setup_chroot() {
         mount "${partition1[@]}" "$mount_dir/boot/" && \
         mount -t proc proc "$mount_dir/proc/" && \
         mount -t sysfs sys "$mount_dir/sys/" && \
-        mount -o bind /dev "$mount_dir/dev/"
+        mount -t devtmpfs dev "$mount_dir/dev/" && \
         mount -t devpts devpts "$mount_dir/dev/pts"
     } || {
         echo "Failed to mount chroot system directories."
@@ -92,16 +100,17 @@ setup_salt() {
     fi
 
     chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/bin/chmod 775 /bootstrap-salt.sh && \
-        /bootstrap-salt.sh" || {
+        /bootstrap-salt.sh -X -d" || {
         echo "Salt-bootstrap execution failed."
         return 1
     }
 
     echo "file_client: local" > "$mount_dir/etc/salt/minion"
     mkdir -p "$mount_dir/srv/salt"
-    cp -rf "$PWD/pillar" "$mount_dir/srv/"
-    cp -rf "$PWD/pnk" "$mount_dir/srv/salt/"
-    chroot "$mount_dir" salt-call state.highstate || {
+    mkdir -p "$mount_dir/srv/pillar"
+    cp -rf "$PWD/pillar/*" "$mount_dir/srv/pillar/"
+    cp -rf "$PWD/pnk/*" "$mount_dir/srv/salt/salt/"
+    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/usr/bin/salt-call state.highstate" || {
         echo "Salt execution failed."
         return 1
     }
@@ -132,6 +141,7 @@ main() {
     check_bin kpartx
     check_bin mkdir
     check_bin mount
+    check_bin mv
     check_bin rm
     check_bin sha256sum
     check_bin umount
@@ -149,9 +159,13 @@ main() {
         fi
     done
 
-    setup_chroot "$PNK_RPI_IMAGE_URL" "$PNK_RPI_IMAGE_SHA256SUM" "$PNK_TEMP_DIR" "$PNK_CACHE_DIR" "$PNK_MOUNT_DIR" || exit 1
+    local image="${url##*/}"
+    image="${image%.zip}.img"
+    download_raspbian "$PNK_RPI_IMAGE_URL" "$PNK_RPI_IMAGE_SHA256SUM" "$PNK_CACHE_DIR" "$PNK_TEMP_DIR" || exit 1
+    setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
     setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
     setup_docker "$PNK_CONTAINERS" "$PNK_MOUNT_DIR" || exit 1
+    mv "$PNK_TEMP_DIR/$image" "$PNK_OUTPUT_FILE" || exit 1
 }
 
 main "$@"
