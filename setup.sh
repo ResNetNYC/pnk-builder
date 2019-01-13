@@ -28,7 +28,7 @@ download_raspbian() {
 
     # Download Raspbian
     if [[ ! -e "$cache_dir/$file" ]]; then
-        curl -L "$url" ||
+        curl -o "$cache_dir/$file" -L "$url" ||
             { echo "Failed to download raspbian."; return 1; }
     fi
     
