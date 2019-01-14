@@ -102,8 +102,8 @@ setup_salt() {
     echo "file_client: local" > "$mount_dir/etc/salt/minion"
     mkdir -p "$mount_dir/srv/salt"
     mkdir -p "$mount_dir/srv/pillar"
-    cp -rf "$PWD/pillar/*" "$mount_dir/srv/pillar/"
-    cp -rf "$PWD/pnk/*" "$mount_dir/srv/salt/salt/"
+    cp -rf "$PWD"/pillar/* "$mount_dir/srv/pillar/"
+    cp -rf "$PWD"/pnk/* "$mount_dir/srv/salt/"
     chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/usr/bin/salt-call state.highstate" || {
         echo "Salt execution failed."
         return 1
