@@ -12,6 +12,8 @@ addons:
     packages:
     - kpartx
     - qemu-user-static
+services:
+  - docker
 install: true
 script:
 - sudo PNK_CACHE_DIR="./cache" PNK_OUTPUT_FILE="./build/pnk.img" bash ./setup.sh
