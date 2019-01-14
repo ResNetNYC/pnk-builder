@@ -122,8 +122,8 @@ setup_docker() {
     mkdir -p "$mount_dir/srv/docker"
     for c in "${containers[@]}"; do
         docker pull "$c" || continue
-        out="${$c/\//_/}"
-        out="${$out/:/_/}"
+        out="${$c/\//_}"
+        out="${$out/:/_}"
         docker save -o "$mount_dir/srv/docker/$out.docker" "$c" && ((pulled++))
     done
     if [[ "${#containers[@]}" -ne "$pulled" ]]; then
