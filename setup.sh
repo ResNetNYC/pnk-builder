@@ -67,18 +67,19 @@ setup_chroot() {
         echo "Failed to mount chroot system directories."
         return 1
     }
+
+    cp "$PWD/chroot.sh" "$mount_dir/"
+    chmod 755 "$mount_dir/chroot.sh"
     
-    ls -lah $mount_dir/usr/bin/
-    chroot "$mount_dir" /usr/bin/ischroot
-    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c \
-    "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
-    /usr/sbin/locale-gen && \
-    /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
-    apt-get -qq update && \
-    apt-get install -y --no-install-recommends git python-pygit2" || {
-        echo "Failed to initialize chroot locale and install dependencies."
-        return 1
-    }
+ #   chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c \
+ #   "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
+ #   /usr/sbin/locale-gen && \
+ #   /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
+ #   apt-get -qq update && \
+ #   apt-get install -y --no-install-recommends git python-pygit2" || {
+ #       echo "Failed to initialize chroot locale and install dependencies."
+ #       return 1
+ #   }
 }
 
 setup_salt() {
@@ -96,21 +97,21 @@ setup_salt() {
         return 1
     fi
 
-    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/bin/chmod 775 /bootstrap-salt.sh && \
-        /bootstrap-salt.sh -X -d" || {
-        echo "Salt-bootstrap execution failed."
-        return 1
-    }
+#    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/bin/chmod 775 /bootstrap-salt.sh && \
+#        /bootstrap-salt.sh -X -d" || {
+#        echo "Salt-bootstrap execution failed."
+#        return 1
+#    }
 
     echo "file_client: local" > "$mount_dir/etc/salt/minion"
     mkdir -p "$mount_dir/srv/salt"
     mkdir -p "$mount_dir/srv/pillar"
     cp -rf "$PWD"/pillar/* "$mount_dir/srv/pillar/"
     cp -rf "$PWD"/pnk/* "$mount_dir/srv/salt/"
-    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/usr/bin/salt-call state.highstate" || {
-        echo "Salt execution failed."
-        return 1
-    }
+#    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/usr/bin/salt-call state.highstate" || {
+#        echo "Salt execution failed."
+#        return 1
+#    }
 }
 
 setup_docker() {
@@ -162,6 +163,7 @@ main() {
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
     setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
     setup_docker "$PNK_CONTAINERS" "$PNK_MOUNT_DIR" || exit 1
+    chroot "$mount_dir" /bin/sh -c /chroot.sh
     mv "$PNK_TEMP_DIR/$image" "$PNK_OUTPUT_FILE" || exit 1
 }
 
