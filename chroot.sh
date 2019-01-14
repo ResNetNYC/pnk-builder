@@ -15,6 +15,7 @@ apt-get install -y --no-install-recommends git python-pygit2 || {
     echo "Salt-bootstrap execution failed."
     return 1
 }
+echo "file_client: local" > /etc/salt/minion
 /usr/bin/salt-call state.highstate || {
     echo "Salt execution failed."
     return 1
