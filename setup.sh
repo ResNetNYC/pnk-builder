@@ -54,7 +54,7 @@ setup_chroot() {
         echo "Failed to map raspbian, invalid image?"
         return 1
     }
-    printf "Mounting %s and %s at %s." "${output[11]}" "${output[2]}" "$mount_dir"
+    printf "Mounting %s and %s at %s.\n" "${output[11]}" "${output[2]}" "$mount_dir"
 
     {
         mount "/dev/mapper/${output[11]}" "$mount_dir" && \
@@ -67,7 +67,8 @@ setup_chroot() {
         echo "Failed to mount chroot system directories."
         return 1
     }
-
+    
+    ls -lah $mount_dir/usr/bin/
     chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c \
     "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
     /usr/sbin/locale-gen && \
