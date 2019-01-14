@@ -73,7 +73,7 @@ setup_chroot() {
     }
 
     if [[ "$PNK_EXTEND_MB" -gt 0 ]]; then
-        resize2fs "/dev/mapper/${output[11]}" || {
+        e2fsck -f "/dev/mapper/${output[11]}" && resize2fs "/dev/mapper/${output[11]}" || {
             echo "Failed to resize filesystem."
             return 1
         }
