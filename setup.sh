@@ -69,6 +69,7 @@ setup_chroot() {
     }
 
     cp "$PWD/chroot.sh" "$mount_dir/"
+    cp "/usr/bin/qemu-arm-static" "$mount_dir/usr/bin"
     chmod 755 "$mount_dir/chroot.sh"
     
  #   chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c \
