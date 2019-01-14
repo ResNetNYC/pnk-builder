@@ -12,11 +12,14 @@ addons:
     packages:
     - kpartx
     - qemu-user-static
+    - parted
+    - e2fsprogs
+    - zip
 services:
   - docker
 install: true
 script:
-- sudo PNK_CACHE_DIR="./cache" PNK_OUTPUT_FILE="./build/pnk.img" bash ./setup.sh
+- sudo PNK_CACHE_DIR="./cache" PNK_OUTPUT_FILE="./build/pnk.img" PNK_EXTEND_MB="1024" bash ./build.sh
 deploy:
   provider: releases
   api_key:

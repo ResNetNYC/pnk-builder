@@ -12,6 +12,7 @@ PNK_CONTAINERS=( "arm64v8/mariadb:10" "arm64v8/wordpress:4" "ryansch/unifi-rpi:l
 : ${PNK_MOUNT_DIR:="$PNK_TEMP_DIR/mnt"}
 : ${PNK_BUILD_DIR:="$PWD/build"}
 : ${PNK_OUTPUT_FILE:="$PWD/build/pnk-$(date +%Y%m%dT%H%M%S).img"}
+: ${PNK_EXTEND_MB:="0"}
 
 
 check_bin() {
@@ -45,6 +46,22 @@ download_raspbian() {
     fi
 }
 
+resize_image() {
+    local -r image="$1"
+    local -r extension="$2"
+
+    truncate -s +"${extension}MB" "$image" || {
+        echo "Failed to extend image."
+        return 1
+    }
+
+    parted -s "$image" resizepart 2 100% || {
+        echo "Failed to extend partition."
+        return 1
+    }
+}
+
+
 
 setup_chroot() {
     local -r image="$1"
@@ -54,6 +71,13 @@ setup_chroot() {
         echo "Failed to map raspbian, invalid image?"
         return 1
     }
+
+    if [[ "$PNK_EXTEND_MB" -gt 0 ]]; then
+        resize2fs "/dev/mapper/${output[11]}" || {
+            echo "Failed to resize filesystem."
+            return 1
+        }
+    fi
     printf "Mounting %s and %s at %s.\n" "${output[11]}" "${output[2]}" "$mount_dir"
 
     {
@@ -140,6 +164,8 @@ main() {
     check_bin mkdir
     check_bin mount
     check_bin mv
+    check_bin parted
+    check_bin resize2fs
     check_bin rm
     check_bin sha256sum
     check_bin umount
@@ -160,10 +186,12 @@ main() {
     local image="${PNK_RPI_IMAGE_URL##*/}"
     image="${image%.zip}.img"
     download_raspbian "$PNK_RPI_IMAGE_URL" "$PNK_RPI_IMAGE_SHA256SUM" "$PNK_CACHE_DIR" "$PNK_TEMP_DIR" || exit 1
+    if [[ "$PNK_EXTEND_MB" -gt 0 ]];  then
+        resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
+    fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
     setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
     setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
-    chroot "$PNK_MOUNT_DIR" /bin/sh -c /chroot.sh
     mv "$PNK_TEMP_DIR/$image" "$PNK_OUTPUT_FILE" || exit 1
 }
 
