@@ -164,7 +164,7 @@ main() {
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
     setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
     #setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
-    chroot "$mount_dir" /bin/sh -c /chroot.sh
+    chroot "$PNK_MOUNT_DIR" /bin/sh -c /chroot.sh
     mv "$PNK_TEMP_DIR/$image" "$PNK_OUTPUT_FILE" || exit 1
 }
 
