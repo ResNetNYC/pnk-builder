@@ -19,7 +19,7 @@ services:
   - docker
 install: true
 script:
-- sudo PNK_CACHE_DIR="./cache" PNK_OUTPUT_FILE="./build/pnk.img" PNK_EXTEND_MB="1024" bash ./build.sh
+- sudo PNK_CACHE_DIR="./cache" PNK_OUTPUT_FILE="./build/pnk.img" PNK_EXTEND_MB="1536" bash ./build.sh
 deploy:
   provider: releases
   api_key:
