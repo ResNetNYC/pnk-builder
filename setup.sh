@@ -69,6 +69,7 @@ setup_chroot() {
     }
     
     ls -lah $mount_dir/usr/bin/
+    chroot "$mount_dir" /usr/bin/ischroot
     chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c \
     "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
     /usr/sbin/locale-gen && \
