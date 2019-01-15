@@ -23,7 +23,7 @@ env:
 script:
 - sudo bash ./build.sh
 before_deploy:
-- zip build/pnk.zip build/pnk.img
+- sudo zip build/pnk.zip build/pnk.img
 deploy:
   provider: releases
   api_key:
