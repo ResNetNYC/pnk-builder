@@ -93,6 +93,9 @@ setup_chroot() {
     }
 
     cp "/usr/bin/qemu-arm-static" "$mount_dir/usr/bin"
+
+    # enable SSH
+    touch "$mount_dir/boot/ssh"
     
     chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c \
     "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
