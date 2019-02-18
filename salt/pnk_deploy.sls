@@ -1,40 +1,26 @@
 # -*- coding: utf-8 -*-
 # vim: ft=sls
 
-Install Docker repo dependencies:
-  pkg.installed:
-    - pkgs:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-
-Setup Docker apt repository:
-  pkgrepo.managed:
-    - name: deb https://download.docker.com/linux/ubuntu stretch edge
-    - file: /etc/apt/sources.list.d/docker.list
-    - require:
-      - pkg: Install Docker repo dependencies
-    - key_url: https://download.docker.com/linux/ubuntu/gpg
-
-Install Docker and bindings:
-  pkg.installed:
-    - pkgs:
-      - docker-ce
-      - python-docker
-    - require:
-      - pkgrepo: Setup Docker apt repository
-    - reload_modules: True
-
 Run Docker:
   service.running:
     - name: docker
     - require:
       - pkg: Install Docker and bindings
 
-mariadb:
+Mariadb load:
+  docker_image.present:
+    - name: arm64v8/mariadb
+    - tag: 10
+    - load: /srv/import/mariadb.docker
+    - onlyif:
+      - test -e /srv/import/mariadb.docker
+    - require_in:
+      - docker_container: Mariadb run
+
+Mariadb run:
   docker_container.running:
     - name: mariadb
-    - image: mariadb:10
+    - image: arm64v8/mariadb:10
     - restart_policy: always
     - environment:
       - MYSQL_RANDOM_ROOT_PASSWORD: yes
@@ -44,10 +30,20 @@ mariadb:
     - require:
       - service: Run Docker
 
-wordpress:
+Wordpress load:
+  docker_image.present:
+    - name: arm64v8/wordpress
+    - tag: 4
+    - load: /srv/import/wordpress.docker
+    - onlyif:
+      - test -e /srv/import/wordpress.docker
+    - require_in:
+      - docker_container: Wordpress run
+
+Wordpress run:
   docker_container.running:
     - name: wordpress
-    - image: wordpress:4
+    - image: arm64v8/wordpress:4
     - port_bindings:
       - 80:80
     - links:
@@ -59,17 +55,26 @@ wordpress:
       - WORDPRESS_DB_PASSWORD: wordpress
     - require:
       - docker_container: mariadb
-      #- service: Run Docker
-      - cmd: Run Docker
+      - service: Run Docker
 
-unifi:
+Unifi load:
+  docker_image.present:
+    - name: ryansch/unifi-rpi
+    - tag: latest
+    - load: /srv/import/unifi.docker
+    - onlyif:
+      - test -e /srv/import/unifi.docker
+    - require_in:
+      - docker_container: Unifi run
+
+Unifi run:
   docker_container.running:
     - name: unifi
     - restart_policy: always
-    - image: jacobalberty/unifi:5.9
+    - image: ryansch/unifi-rpi:latest
     - binds:
-      - unifi_config:/unifi/data:rw
-      - unifi_logs:/unifi/log:rw
+      - unifi_config:/var/lib/unifi:rw
+      - unifi_logs:/var/log/unifi:rw
     - port_bindings:
       - 8080:8080
       - 8443:8443
