@@ -6,7 +6,7 @@ used_mktemp=false
 PNK_CONTAINERS=( "arm64v8/mariadb:10" "arm64v8/wordpress:4" "ryansch/unifi-rpi:latest" )
 : ${PNK_RPI_IMAGE_URL:="https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip"}
 : ${PNK_RPI_IMAGE_SHA256SUM:="03ec326d45c6eb6cef848cf9a1d6c7315a9410b49a276a6b28e67a40b11fdfcf"}
-: ${PNK_SALT_SHA256SUM:="ab7f29b75711da4bb79aff98d46654f910d569ebe3e908753a3c5119017bb163"}
+: ${PNK_SALT_SHA256SUM:="46fb5e4b7815efafd69fd703f033fe86e7b584b6770f7e0b936995bcae1cedd8"}
 : ${PNK_TEMP_DIR:="$(used_mktemp=true; mktemp -d)"}
 : ${PNK_CACHE_DIR:="$PNK_TEMP_DIR/cache"}
 : ${PNK_MOUNT_DIR:="$PNK_TEMP_DIR/mnt"}
