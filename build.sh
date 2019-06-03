@@ -158,7 +158,7 @@ setup_docker() {
 }
 
 main() {
-    trap "{ rc="$?"; umount -R -f "$PNK_MOUNT_DIR" || true; dmsetup remove_all || true; [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR" || true; exit "$?"; }" EXIT
+    trap "{ rc="$?"; umount -R -f "$PNK_MOUNT_DIR" || true; dmsetup remove_all || true; [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR" || true; exit "$rc"; }" EXIT
 
     check_bin curl
     check_bin dmsetup
