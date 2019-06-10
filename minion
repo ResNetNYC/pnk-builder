@@ -1,0 +1,20 @@
+# File managed by Salt.
+# Your changes will be overwritten.
+
+file_client: local
+
+gitfs_provider: pygit2
+
+fileserver_backend:
+  - roots
+  - git
+
+gitfs_remotes:
+  - git://github.com/saltstack-formulas/openssh-formula.git
+  - git://github.com/saltstack-formulas/sudoers-formula.git
+  - git://github.com/saltstack-formulas/users-formula.git
+  - git://github.com/saltstack-formulas/systemd-formula.git
+  - git://github.com/saltstack-formulas/mysql-formula.git
+  - git://github.com/saltstack-formulas/php-formula.git
+  - git://github.com/saltstack-formulas/apache-formula.git
+  - git://github.com/saltstack-formulas/wordpress-formula.git

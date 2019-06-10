@@ -3,7 +3,6 @@
 set -eo pipefail
 
 used_mktemp=false
-PNK_CONTAINERS=( "arm64v8/mariadb:10" "arm64v8/wordpress:4" "ryansch/unifi-rpi:latest" )
 : ${PNK_RPI_IMAGE_URL:="https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip"}
 : ${PNK_RPI_IMAGE_SHA256SUM:="03ec326d45c6eb6cef848cf9a1d6c7315a9410b49a276a6b28e67a40b11fdfcf"}
 : ${PNK_SALT_SHA256SUM:="46fb5e4b7815efafd69fd703f033fe86e7b584b6770f7e0b936995bcae1cedd8"}
@@ -129,9 +128,9 @@ setup_salt() {
         return 1
     }
 
-    echo "file_client: local" > "$mount_dir/etc/salt/minion"
     mkdir -p "$mount_dir/srv/salt"
     mkdir -p "$mount_dir/srv/pillar"
+    cp "$PWD"/minion "$mount_dir/etc/salt/minion"
     cp -rf "$PWD"/pillar/* "$mount_dir/srv/pillar/"
     cp -rf "$PWD"/salt/* "$mount_dir/srv/salt/"
     chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/usr/bin/salt-call state.highstate" || {
@@ -140,29 +139,11 @@ setup_salt() {
     }
 }
 
-setup_docker() {
-    local -r mount_dir="$1"
-    shift
-    local containers=( "$@" )
-    local -i pulled=0
-    mkdir -p "$mount_dir/srv/docker"
-    for c in "${containers[@]}"; do
-        docker pull "$c" || continue
-        out="${c/\//_}"
-        out="${out/:/_}"
-        docker save -o "$mount_dir/srv/docker/$out.docker" "$c" && ((pulled++))
-    done
-    if [[ "${#containers[@]}" -ne "$pulled" ]]; then
-        return 1
-    fi
-}
-
 main() {
     trap "{ rc="$?"; umount -R -f "$PNK_MOUNT_DIR" || true; dmsetup remove_all || true; [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR" || true; exit "$rc"; }" EXIT
 
     check_bin curl
     check_bin dmsetup
-    check_bin docker
     check_bin kpartx
     check_bin mkdir
     check_bin mount
@@ -194,7 +175,6 @@ main() {
     fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
     setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
-    setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
     mv "$PNK_TEMP_DIR/$image" "$PNK_OUTPUT_FILE" || exit 1
 }
 
