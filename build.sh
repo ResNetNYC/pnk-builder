@@ -193,8 +193,8 @@ main() {
         resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
     fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
-    setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
-    setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
+    #setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
+    #setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
     mv "$PNK_TEMP_DIR/$image" "$PNK_OUTPUT_FILE" || exit 1
 }
 
