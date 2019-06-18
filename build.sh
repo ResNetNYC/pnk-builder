@@ -78,19 +78,19 @@ setup_chroot() {
             return 1
         }
     fi
-    #printf "Mounting %s and %s at %s.\n" "${output[11]}" "${output[2]}" "$mount_dir"
+    printf "Mounting %s and %s at %s.\n" "${output[11]}" "${output[2]}" "$mount_dir"
 
-    #{
-    #    mount "/dev/mapper/${output[11]}" "$mount_dir" && \
-    #    mount "/dev/mapper/${output[2]}" "$mount_dir/boot/" && \
+    {
+        mount "/dev/mapper/${output[11]}" "$mount_dir" && \
+        mount "/dev/mapper/${output[2]}" "$mount_dir/boot/"
     #    mount -t proc proc "$mount_dir/proc/" && \
     #    mount -t sysfs sys "$mount_dir/sys/" && \
     #    mount -t devtmpfs dev "$mount_dir/dev/" && \
     #    mount -t devpts devpts "$mount_dir/dev/pts"
-    #} || {
-    #    echo "Failed to mount chroot system directories."
-    #    return 1
-    #}
+    } || {
+        echo "Failed to mount chroot system directories."
+        return 1
+    }
 
     cp "/usr/bin/qemu-arm-static" "$mount_dir/usr/bin"
 
