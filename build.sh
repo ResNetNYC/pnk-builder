@@ -134,7 +134,7 @@ setup_salt() {
     mkdir -p "$mount_dir/srv/pillar"
     cp -rf "$PWD"/pillar/* "$mount_dir/srv/pillar/"
     cp -rf "$PWD"/salt/* "$mount_dir/srv/salt/"
-    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/usr/bin/salt-call state.highstate" || {
+    systemd-nspawn -D "$mount_dir" "/usr/bin/salt-call state.highstate" || {
         echo "Salt execution failed."
         return 1
     }
