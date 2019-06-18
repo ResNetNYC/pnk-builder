@@ -78,26 +78,26 @@ setup_chroot() {
             return 1
         }
     fi
-    printf "Mounting %s and %s at %s.\n" "${output[11]}" "${output[2]}" "$mount_dir"
+    #printf "Mounting %s and %s at %s.\n" "${output[11]}" "${output[2]}" "$mount_dir"
 
-    {
-        mount "/dev/mapper/${output[11]}" "$mount_dir" && \
-        mount "/dev/mapper/${output[2]}" "$mount_dir/boot/" && \
-        mount -t proc proc "$mount_dir/proc/" && \
-        mount -t sysfs sys "$mount_dir/sys/" && \
-        mount -t devtmpfs dev "$mount_dir/dev/" && \
-        mount -t devpts devpts "$mount_dir/dev/pts"
-    } || {
-        echo "Failed to mount chroot system directories."
-        return 1
-    }
+    #{
+    #    mount "/dev/mapper/${output[11]}" "$mount_dir" && \
+    #    mount "/dev/mapper/${output[2]}" "$mount_dir/boot/" && \
+    #    mount -t proc proc "$mount_dir/proc/" && \
+    #    mount -t sysfs sys "$mount_dir/sys/" && \
+    #    mount -t devtmpfs dev "$mount_dir/dev/" && \
+    #    mount -t devpts devpts "$mount_dir/dev/pts"
+    #} || {
+    #    echo "Failed to mount chroot system directories."
+    #    return 1
+    #}
 
     cp "/usr/bin/qemu-arm-static" "$mount_dir/usr/bin"
 
     # enable SSH
     touch "$mount_dir/boot/ssh"
     
-    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c \
+    systemd-nspawn --capability=all -D "$mount_dir" \
     "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
     /usr/sbin/locale-gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
@@ -134,7 +134,7 @@ setup_salt() {
     mkdir -p "$mount_dir/srv/pillar"
     cp -rf "$PWD"/pillar/* "$mount_dir/srv/pillar/"
     cp -rf "$PWD"/salt/* "$mount_dir/srv/salt/"
-    systemd-nspawn -D "$mount_dir" "/usr/bin/salt-call state.highstate" || {
+    systemd-nspawn --capability=all -D "$mount_dir" "/usr/bin/salt-call state.highstate" || {
         echo "Salt execution failed."
         return 1
     }
