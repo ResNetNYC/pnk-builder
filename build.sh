@@ -97,7 +97,7 @@ setup_chroot() {
     # enable SSH
     touch "$mount_dir/boot/ssh"
     
-    systemd-nspawn --capability=all -D "$mount_dir" \
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
     "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
     /usr/sbin/locale-gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
