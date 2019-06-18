@@ -130,9 +130,9 @@ setup_salt() {
         return 1
     }
 
-    echo "file_client: local" > "$mount_dir/etc/salt/minion"
     mkdir -p "$mount_dir/srv/salt"
     mkdir -p "$mount_dir/srv/pillar"
+    cp "$PWD"/minion "$mount_dir/etc/salt/minion"
     cp -rf "$PWD"/pillar/* "$mount_dir/srv/pillar/"
     cp -rf "$PWD"/salt/* "$mount_dir/srv/salt/"
     systemd-nspawn --capability=all -D "$mount_dir" /usr/bin/salt-call state.highstate || {
