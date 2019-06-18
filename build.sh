@@ -72,12 +72,12 @@ setup_chroot() {
         return 1
     }
 
-    if [[ "$PNK_EXTEND_MB" -gt 0 ]]; then
-        e2fsck -f "/dev/mapper/${output[11]}" && resize2fs "/dev/mapper/${output[11]}" || {
-            echo "Failed to resize filesystem."
-            return 1
-        }
-    fi
+    #if [[ "$PNK_EXTEND_MB" -gt 0 ]]; then
+    #    e2fsck -f "/dev/mapper/${output[11]}" && resize2fs "/dev/mapper/${output[11]}" || {
+    #        echo "Failed to resize filesystem."
+    #        return 1
+    #    }
+    #fi
     printf "Mounting %s and %s at %s.\n" "${output[11]}" "${output[2]}" "$mount_dir"
 
     {
@@ -123,8 +123,9 @@ setup_salt() {
         return 1
     fi
 
-    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/bin/chmod 775 /bootstrap-salt.sh && \
-        /bootstrap-salt.sh -X -d" || {
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
+    "/bin/chmod 775 /bootstrap-salt.sh && \
+    /bootstrap-salt.sh -X -d" || {
         echo "Salt-bootstrap execution failed."
         return 1
     }
@@ -134,7 +135,7 @@ setup_salt() {
     mkdir -p "$mount_dir/srv/pillar"
     cp -rf "$PWD"/pillar/* "$mount_dir/srv/pillar/"
     cp -rf "$PWD"/salt/* "$mount_dir/srv/salt/"
-    systemd-nspawn --capability=all -D "$mount_dir" "/usr/bin/salt-call state.highstate" || {
+    systemd-nspawn --capability=all -D "$mount_dir" /usr/bin/salt-call state.highstate || {
         echo "Salt execution failed."
         return 1
     }
