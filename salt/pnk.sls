@@ -8,29 +8,29 @@ Set hostname:
     - apply_hostname: True
     - retain_settings: True
 
-Install Docker repo dependencies:
+Install repo dependencies:
   pkg.installed:
     - pkgs:
       - apt-transport-https
       - ca-certificates
       - curl
 
-Setup Docker apt repository:
+Configure Unifi repository:
   pkgrepo.managed:
-    - name: deb https://download.docker.com/linux/raspbian stretch edge
-    - file: /etc/apt/sources.list.d/docker.list
+    - humanname: Unifi repo
+    - name: deb http://www.ui.com/downloads/unifi/debian stable ubiquiti
+    - file: /etc/apt/sources.list.d/100-ubnt-unifi.list
+    - gpgcheck: 1
+    - key_url: https://dl.ui.com/unifi/unifi-repo.gpg
     - require:
-      - pkg: Install Docker repo dependencies
-    - key_url: https://download.docker.com/linux/raspbian/gpg
+      - pkg: Install repo dependencies
+    - require_in:
+      - pkg: Unifi package
 
-Install Docker and bindings:
-  pkg.installed:
-    - pkgs:
-      - docker-ce
-      - python-docker
-    - require:
-      - pkgrepo: Setup Docker apt repository
-    - reload_modules: True
+Unifi package:
+  pkg.latest:
+    - name: unifi
+    - refresh: True
 
 Configure saltroots:
   file.serialize:
@@ -41,6 +41,10 @@ Configure saltroots:
         base:
           '*':
             - pnk_deploy
+            - php
+            - apache
+            - mysql
+            - wordpress
     - formatter: yaml
 
 Deploy state:
