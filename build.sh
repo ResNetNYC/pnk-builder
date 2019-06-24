@@ -108,10 +108,13 @@ cat <<'EOF' > "$mount_dir/sbin/start-stop-daemon"
 #!/bin/sh
 echo "Warning: Fake start-stop-daemon called, doing nothing"
 EOF
+    chmod +x "$mount_dir/sbin/start-stop-daemon"
+
 cat <<'EOF' > "$mount_dir/usr/sbin/policy-rc.d"
 #!/bin/sh
 exit 101
 EOF
+    chmod +x "$mount_dir/usr/sbin/policy-rc.d"
     
     systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
     "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
