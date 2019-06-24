@@ -96,13 +96,29 @@ setup_chroot() {
 
     # enable SSH
     touch "$mount_dir/boot/ssh"
+
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
+    "/usr/bin/dpkg-divert --add --rename --local /sbin/start-stop-daemon && \
+    /usr/bin/dpkg-divert --add --rename --local /usr/sbin/policy-rc.d" || {
+        echo "Failed to divert service tools."
+        return 1
+    }
+
+cat <<'EOF' > /sbin/start-stop-daemon 
+#!/bin/sh
+echo "Warning: Fake start-stop-daemon called, doing nothing"
+EOF
+cat <<'EOF' > /usr/sbin/policy-rc.d 
+#!/bin/sh
+exit 101
+EOF
     
     systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
     "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
     /usr/sbin/locale-gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
     apt-get -qq update && \
-    apt-get install -y --no-install-recommends git python-pygit2" || {
+    apt-get install -y --no-install-recommends git" || {
         echo "Failed to initialize chroot locale and install dependencies."
         return 1
     }
@@ -158,6 +174,19 @@ setup_docker() {
     fi
 }
 
+setup_unifi() {
+    local -r mount_dir="$1"
+
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
+    "echo deb [signed-by=/usr/share/keyrings/unifi-repo.gpg] http://www.ui.com/downloads/unifi/debian stable ubiquiti > /etc/apt/sources.list.d/100-ubnt-unifi.list && \
+    wget -O /usr/share/keyrings/unifi-repo.gpg https://dl.ui.com/unifi/unifi-repo.gpg && \
+    apt-get -qq update && \
+    apt-get install -y --no-install-recommends unifi" || {
+        echo "Failed to install unifi controller."
+        return 1
+    }
+}
+
 main() {
     trap "{ rc="$?"; umount -R -f "$PNK_MOUNT_DIR" || true; dmsetup remove_all || true; [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR" || true; exit "$rc"; }" EXIT
 
@@ -194,7 +223,8 @@ main() {
 #        resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
 #    fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
-    setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
+    setup_unifi "$PNK_MOUNT_DIR" || exit 1
+#    setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
 #    setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
 
     ## Cleanup
