@@ -13,6 +13,7 @@ PNK_CONTAINERS=( "arm64v8/mariadb:10" "arm64v8/wordpress:4" "ryansch/unifi-rpi:l
 : ${PNK_BUILD_DIR:="$PWD/build"}
 : ${PNK_OUTPUT_FILE:="$PWD/build/pnk-$(date +%Y%m%dT%H%M%S).img"}
 : ${PNK_EXTEND_MB:="0"}
+: ${PNK_HOSTNAME:="pnkserver"}
 
 
 check_bin() {
@@ -127,6 +128,15 @@ EOF
     }
 }
 
+setup_hostname() {
+    local -r old_hostname="$1"
+    local -r new_hostname="$2"
+    local -r mount_dir="$3"
+
+    sed -i -e "s/${old_hostname}/${new_hostname}/" "$mount_dir/etc/hosts"
+    echo "$new_hostname" > "$mount_dir/etc/hostname"
+}
+
 setup_salt() {
     local -r sha256sum="$1"
     local -r mount_dir="$2"
@@ -203,6 +213,7 @@ main() {
     check_bin parted
     check_bin resize2fs
     check_bin rm
+    check_bin sed
     check_bin sha256sum
     check_bin umount
 
@@ -226,6 +237,7 @@ main() {
         resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
     fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
+    setup_hostname "raspberrypi" "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
     setup_unifi "$PNK_MOUNT_DIR" || exit 1
 #    setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
 #    setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
