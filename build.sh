@@ -72,12 +72,12 @@ setup_chroot() {
         return 1
     }
 
-    #if [[ "$PNK_EXTEND_MB" -gt 0 ]]; then
-    #    e2fsck -f "/dev/mapper/${output[11]}" && resize2fs "/dev/mapper/${output[11]}" || {
-    #        echo "Failed to resize filesystem."
-    #        return 1
-    #    }
-    #fi
+    if [[ "$PNK_EXTEND_MB" -gt 0 ]]; then
+        e2fsck -f "/dev/mapper/${output[11]}" && resize2fs "/dev/mapper/${output[11]}" || {
+            echo "Failed to resize filesystem."
+            return 1
+        }
+    fi
     printf "Mounting %s and %s at %s.\n" "${output[11]}" "${output[2]}" "$mount_dir"
 
     {
@@ -191,7 +191,7 @@ setup_unifi() {
 }
 
 main() {
-    trap "{ rc="$?"; umount -R -f "$PNK_MOUNT_DIR" || true; dmsetup remove_all || true; [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR" || true; exit "$rc"; }" EXIT
+    trap "{ rc="$?"; sync; umount -R -f "$PNK_MOUNT_DIR" || true; dmsetup remove_all || true; [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR" || true; exit "$rc"; }" EXIT
 
     check_bin curl
     check_bin dmsetup
@@ -222,15 +222,16 @@ main() {
     local image="${PNK_RPI_IMAGE_URL##*/}"
     image="${image%.zip}.img"
     download_raspbian "$PNK_RPI_IMAGE_URL" "$PNK_RPI_IMAGE_SHA256SUM" "$PNK_CACHE_DIR" "$PNK_TEMP_DIR" || exit 1
-#    if [[ "$PNK_EXTEND_MB" -gt 0 ]];  then
-#        resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
-#    fi
+    if [[ "$PNK_EXTEND_MB" -gt 0 ]];  then
+        resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
+    fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
     setup_unifi "$PNK_MOUNT_DIR" || exit 1
 #    setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
 #    setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
 
     ## Cleanup
+    sync
     umount -R -f "$PNK_MOUNT_DIR"
     dmsetup remove_all
     [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR"
