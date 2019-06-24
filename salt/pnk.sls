@@ -47,6 +47,24 @@ Configure saltroots:
             - wordpress
     - formatter: yaml
 
+Configure pillar top:
+  file.serialize:
+    - name: /srv/pillar/top.sls
+    - makedirs: True
+    - mode: 644
+    - dataset:
+        base:
+          '*':
+            - pnk
+    - formatter: yaml
+
+Configure pillar:
+  file.managed:
+    - name: /srv/pillar/pnk.sls
+    - source: salt://files/pillar/pnk.sls
+    - mode: 644
+    - makedirs: True
+
 Deploy state:
   file.managed:
     - name: /srv/salt/pnk_deploy.sls
