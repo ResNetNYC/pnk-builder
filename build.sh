@@ -97,8 +97,7 @@ setup_chroot() {
     # enable SSH
     touch "$mount_dir/boot/ssh"
     
-    systemd-nspawn --capability=all -bD "$mount_dir" 
-    systemd-run -M mnt /bin/sh -c \
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
     "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
     /usr/sbin/locale-gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
@@ -124,7 +123,7 @@ setup_salt() {
         return 1
     fi
 
-    systemd-run -M mnt /bin/sh -c \
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
     "/bin/chmod 775 /bootstrap-salt.sh && \
     /bootstrap-salt.sh -X -d" || {
         echo "Salt-bootstrap execution failed."
@@ -136,7 +135,7 @@ setup_salt() {
     cp "$PWD"/minion "$mount_dir/etc/salt/minion"
     cp -rf "$PWD"/pillar/* "$mount_dir/srv/pillar/"
     cp -rf "$PWD"/salt/* "$mount_dir/srv/salt/"
-    systemd-run -M mnt /usr/bin/salt-call state.highstate || {
+    systemd-nspawn --capability=all -D "$mount_dir" /usr/bin/salt-call state.highstate || {
         echo "Salt execution failed."
         return 1
     }
