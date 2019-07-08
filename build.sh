@@ -186,7 +186,7 @@ setup_balena() {
 
 run_balena() {
     local -r mount_dir="$1"
-    systemd-nspawn --capability=all -D "$mount_dir" /usr/bin/balena-engine pull resin/rpi-raspbian:jessie || {
+    systemd-nspawn --capability=all -D "$mount_dir" /usr/local/bin/balena-engine pull resin/rpi-raspbian:jessie || {
         echo "Balena-engine execution failed."
         return 1
     }
