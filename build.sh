@@ -82,11 +82,11 @@ setup_chroot() {
 
     {
         mount "/dev/mapper/${output[11]}" "$mount_dir" && \
-        mount "/dev/mapper/${output[2]}" "$mount_dir/boot/" && \
-        mount -t proc proc "$mount_dir/proc/" && \
-        mount -t sysfs sys "$mount_dir/sys/" && \
-        mount -t devtmpfs dev "$mount_dir/dev/" && \
-        mount -t devpts devpts "$mount_dir/dev/pts"
+        mount "/dev/mapper/${output[2]}" "$mount_dir/boot/"
+#        mount -t proc proc "$mount_dir/proc/" && \
+#        mount -t sysfs sys "$mount_dir/sys/" && \
+#        mount -t devtmpfs dev "$mount_dir/dev/" && \
+#        mount -t devpts devpts "$mount_dir/dev/pts"
     } || {
         echo "Failed to mount chroot system directories."
         return 1
@@ -96,8 +96,27 @@ setup_chroot() {
 
     # enable SSH
     touch "$mount_dir/boot/ssh"
-    
-    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c \
+
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
+    "/usr/bin/dpkg-divert --add --rename --local /sbin/start-stop-daemon && \
+    /usr/bin/dpkg-divert --add --rename --local /usr/sbin/policy-rc.d" || {
+        echo "Failed to divert service tools."
+        return 1
+    }
+
+cat <<'EOF' > "$mount_dir/sbin/start-stop-daemon"
+#!/bin/sh
+echo "Warning: Fake start-stop-daemon called, doing nothing"
+EOF
+    chmod +x "$mount_dir/sbin/start-stop-daemon"
+
+cat <<'EOF' > "$mount_dir/usr/sbin/policy-rc.d"
+#!/bin/sh
+exit 101
+EOF
+    chmod +x "$mount_dir/usr/sbin/policy-rc.d"
+
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
     "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
     /usr/sbin/locale-gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
@@ -123,7 +142,7 @@ setup_salt() {
         return 1
     fi
 
-    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/bin/chmod 775 /bootstrap-salt.sh && \
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c "/bin/chmod 775 /bootstrap-salt.sh && \
         /bootstrap-salt.sh -X -d" || {
         echo "Salt-bootstrap execution failed."
         return 1
@@ -134,7 +153,7 @@ setup_salt() {
     mkdir -p "$mount_dir/srv/pillar"
     cp -rf "$PWD"/pillar/* "$mount_dir/srv/pillar/"
     cp -rf "$PWD"/salt/* "$mount_dir/srv/salt/"
-    chroot "$mount_dir" /usr/bin/env -i HOME="/root" TERM="$TERM" PATH="/bin:/usr/bin:/sbin:/usr/sbin" /bin/sh -c "/usr/bin/salt-call state.highstate" || {
+    systemd-nspawn --capability=all -D "$mount_dir" /usr/bin/salt-call state.highstate || {
         echo "Salt execution failed."
         return 1
     }
