@@ -121,7 +121,7 @@ EOF
     /usr/sbin/locale-gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
     apt-get -qq update && \
-    apt-get install -y --no-install-recommends git python-pygit2" || {
+    apt-get install -y --no-install-recommends curl git python-pygit2" || {
         echo "Failed to initialize chroot locale and install dependencies."
         return 1
     }
@@ -176,13 +176,22 @@ setup_docker() {
     fi
 }
 
-run_docker() {
+setup_balena() {
     local -r mount_dir="$1"
-    systemd-nspawn --capability=all -D "$mount_dir" /usr/bin/dockerd -D || {
-        echo "Docker execution failed."
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c "curl -sfL https://balena.io/engine/install.sh | sh" || {
+        echo "Balena-engine installation failed."
         return 1
     }
 }
+
+run_balena() {
+    local -r mount_dir="$1"
+    systemd-nspawn --capability=all -D "$mount_dir" /usr/bin/balena-engine pull resin/rpi-raspbian:jessie || {
+        echo "Balena-engine execution failed."
+        return 1
+    }
+}
+
 
 main() {
     trap "{ rc="$?"; umount -R -f "$PNK_MOUNT_DIR" || true; dmsetup remove_all || true; [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR" || true; exit "$rc"; }" EXIT
@@ -220,8 +229,9 @@ main() {
         resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
     fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
-    setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
-    run_docker "$PNK_MOUNT_DIR" || exit 1
+#    setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
+    setup_balena "$PNK_MOUNT_DIR" || exit 1
+    run_balena "$PNK_MOUNT_DIR" || exit 1
 #    setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
 
     ## Cleanup
