@@ -178,7 +178,7 @@ setup_docker() {
 
 run_docker() {
     local -r mount_dir="$1"
-    systemd-nspawn --capability=all -D "$mount_dir" /usr/bin/dockerd -H fd:// || {
+    systemd-nspawn --capability=all -D "$mount_dir" /usr/bin/dockerd -D || {
         echo "Docker execution failed."
         return 1
     }
