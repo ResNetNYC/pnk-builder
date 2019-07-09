@@ -217,7 +217,6 @@ main() {
     fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
     setup_hostname "raspberrypi" "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
-    setup_balena "$PNK_MOUNT_DIR" || exit 1
     setup_docker "$PNK_MOUNT_DIR" || exit 1
 
     mv "$PNK_TEMP_DIR/$image" "$PNK_OUTPUT_FILE" || exit 1
