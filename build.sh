@@ -92,7 +92,8 @@ setup_chroot() {
 
     # If we resized the image, we may have changed the PARTUUID: workaround
     if [[ "$PNK_EXTEND_MB" -gt 0 ]]; then
-        sed -i -e "s/PARTUUID=[a-zA-Z0-9]*-[0-9]*/\/dev\/mmcblk0p2/" "$mount_dir/boot/cmdline.txt"
+        sed -i -e "s/PARTUUID=[a-zA-Z0-9]*-0/\/dev\/mmcblk0p/" "$mount_dir/boot/cmdline.txt"
+        sed -i -e "s/PARTUUID=[a-zA-Z0-9]*-0/\/dev\/mmcblk0p/" "$mount_dir/etc/fstab"
     fi
 
     # Add static qemu so we can run ARM binaries
