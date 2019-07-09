@@ -264,9 +264,6 @@ main() {
     run_docker "$PNK_MOUNT_DIR" || exit 1
 #    setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
 
-    ## Cleanup
-    cleanup
-
     mv "$PNK_TEMP_DIR/$image" "$PNK_OUTPUT_FILE" || exit 1
 }
 
