@@ -3,10 +3,8 @@
 set -eo pipefail
 
 used_mktemp=false
-PNK_CONTAINERS=( "arm64v8/mariadb:10" "arm64v8/wordpress:4" "ryansch/unifi-rpi:latest" )
 : ${PNK_RPI_IMAGE_URL:="https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip"}
 : ${PNK_RPI_IMAGE_SHA256SUM:="03ec326d45c6eb6cef848cf9a1d6c7315a9410b49a276a6b28e67a40b11fdfcf"}
-: ${PNK_SALT_SHA256SUM:="46fb5e4b7815efafd69fd703f033fe86e7b584b6770f7e0b936995bcae1cedd8"}
 : ${PNK_TEMP_DIR:="$(used_mktemp=true; mktemp -d)"}
 : ${PNK_CACHE_DIR:="$PNK_TEMP_DIR/cache"}
 : ${PNK_MOUNT_DIR:="$PNK_TEMP_DIR/mnt"}
@@ -67,36 +65,43 @@ setup_chroot() {
     local -r image="$1"
     local -r mount_dir="$2"
 
+    # Map sdcard partitions
     local output=( $(kpartx -s -a -v "$image") ) || {
         echo "Failed to map raspbian, invalid image?"
         return 1
     }
 
+    # Extend size of image if requested
     if [[ "$PNK_EXTEND_MB" -gt 0 ]]; then
         e2fsck -f "/dev/mapper/${output[11]}" && resize2fs "/dev/mapper/${output[11]}" || {
             echo "Failed to resize filesystem."
             return 1
         }
     fi
+
+    # Mount partitions
     printf "Mounting %s and %s at %s.\n" "${output[11]}" "${output[2]}" "$mount_dir"
 
     {
         mount "/dev/mapper/${output[11]}" "$mount_dir" && \
         mount "/dev/mapper/${output[2]}" "$mount_dir/boot/"
-#        mount -t proc proc "$mount_dir/proc/" && \
-#        mount -t sysfs sys "$mount_dir/sys/" && \
-#        mount -t devtmpfs dev "$mount_dir/dev/" && \
-#        mount -t devpts devpts "$mount_dir/dev/pts"
     } || {
         echo "Failed to mount chroot system directories."
         return 1
     }
 
+    # If we resized the image, we may have changed the PARTUUID: workaround
+    if [[ "$PNK_EXTEND_MB" -gt 0 ]]; then
+        sed -i -e "s/PARTUUID=[a-zA-Z0-9]*-[0-9]*/\/dev\/mmcblk0p2/" "$mount_dir/boot/cmdline.txt"
+    fi
+
+    # Add static qemu so we can run ARM binaries
     cp "/usr/bin/qemu-arm-static" "$mount_dir/usr/bin"
 
     # enable SSH
     touch "$mount_dir/boot/ssh"
 
+    # add shims since we can't start services
     systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
     "/usr/bin/dpkg-divert --add --rename --local /sbin/start-stop-daemon && \
     /usr/bin/dpkg-divert --add --rename --local /usr/sbin/policy-rc.d" || {
@@ -116,12 +121,13 @@ exit 101
 EOF
     chmod +x "$mount_dir/usr/sbin/policy-rc.d"
 
+    # Generate locales and install packages
     systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
     "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
     /usr/sbin/locale-gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
     apt-get -qq update && \
-    apt-get install -y --no-install-recommends curl git python-pygit2" || {
+    apt-get install -y --no-install-recommends curl git" || {
         echo "Failed to initialize chroot locale and install dependencies."
         return 1
     }
@@ -166,11 +172,14 @@ setup_docker() {
 }
 
 cleanup() {
+    # Remove shims
     rm "$PNK_MOUNT_DIR/sbin/start-stop-daemon"
     rm "$PNK_MOUNT_DIR/usr/sbin/policy-rc.d"
     systemd-nspawn --capability=all -D "$PNK_MOUNT_DIR" /bin/sh -c \
     "/usr/bin/dpkg-divert --remove --rename --local /sbin/start-stop-daemon && \
     /usr/bin/dpkg-divert --remove --rename --local /usr/sbin/policy-rc.d"
+
+    # Unmount & clean up
     service docker stop
     umount -R -f "$PNK_MOUNT_DIR"
     dmsetup remove_all
@@ -191,6 +200,7 @@ main() {
     check_bin parted
     check_bin resize2fs
     check_bin rm
+    check_bin sed
     check_bin service
     check_bin sha256sum
     check_bin systemd-nspawn
