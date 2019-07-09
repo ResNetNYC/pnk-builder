@@ -188,7 +188,7 @@ run_docker() {
     local -r mount_dir="$1"
 
     # Stop local docker
-    sudo service docker stop
+    service docker stop
 
     # Link docker directories into chroot
     rm -rf /var/lib/docker
@@ -199,18 +199,24 @@ run_docker() {
     ln -sf "$mount_dir/var/run/docker" /var/run/docker
 
     # Start local docker
-    sudo service docker start
+    service docker start
 
-    # Test image
-    sudo docker pull resin/rpi-raspbian:jessie || {
+    # Setup images
+    docker-compose up -d --no-start || {
         echo "Docker image installation failed."
         return 1
     }
 }
 
+cleanup() {
+    service docker stop
+    unmount -R -f "$PNK_MOUNT_DIR"
+    dmsetup remove_all
+    [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR"
+}
 
 main() {
-    trap "{ rc="$?"; umount -R -f "$PNK_MOUNT_DIR" || true; dmsetup remove_all || true; [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR" || true; exit "$rc"; }" EXIT
+    trap "{ rc="$?"; cleanup || true; exit "$rc"; }" EXIT
 
     check_bin curl
     check_bin dmsetup
@@ -251,9 +257,7 @@ main() {
 #    setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
 
     ## Cleanup
-    umount -R -f "$PNK_MOUNT_DIR"
-    dmsetup remove_all
-    [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR"
+    cleanup
 
     mv "$PNK_TEMP_DIR/$image" "$PNK_OUTPUT_FILE" || exit 1
 }
