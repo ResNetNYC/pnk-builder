@@ -188,7 +188,7 @@ run_docker() {
     local -r mount_dir="$1"
 
     # Stop local docker
-    sudo service stop docker
+    sudo service docker stop
 
     # Link docker directories into chroot
     rm -rf /var/lib/docker
@@ -199,7 +199,7 @@ run_docker() {
     ln -sf "$mount_dir/var/run/docker" /var/run/docker
 
     # Start local docker
-    sudo service start docker
+    sudo service docker start
 
     # Test image
     sudo docker pull resin/rpi-raspbian:jessie || {
