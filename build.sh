@@ -184,10 +184,26 @@ setup_balena() {
     }
 }
 
-run_balena() {
+run_docker() {
     local -r mount_dir="$1"
-    systemd-nspawn --capability=all -D "$mount_dir" /usr/local/bin/balena-engine pull resin/rpi-raspbian:jessie || {
-        echo "Balena-engine execution failed."
+
+    # Stop local docker
+    sudo service stop docker
+
+    # Link docker directories into chroot
+    rm -rf /var/lib/docker
+    rm -rf /var/run/docker
+    mkdir -p "$mount_dir/var/lib/docker"
+    mkdir -p "$mount_dir/var/run/docker"
+    ln -sf "$mount_dir/var/lib/docker" /var/lib/docker
+    ln -sf "$mount_dir/var/run/docker" /var/run/docker
+
+    # Start local docker
+    sudo service start docker
+
+    # Test image
+    sudo docker pull resin/rpi-raspbian:jessie || {
+        echo "Docker image installation failed."
         return 1
     }
 }
@@ -231,7 +247,7 @@ main() {
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
 #    setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
     setup_balena "$PNK_MOUNT_DIR" || exit 1
-    run_balena "$PNK_MOUNT_DIR" || exit 1
+    run_docker "$PNK_MOUNT_DIR" || exit 1
 #    setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
 
     ## Cleanup

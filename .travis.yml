@@ -16,6 +16,8 @@ addons:
     - e2fsprogs
     - systemd-container
     - zip
+services:
+  - docker
 install: true
 env:
 - PNK_CACHE_DIR=./cache PNK_OUTPUT_FILE=./build/pnk.img PNK_EXTEND_MB=1536
