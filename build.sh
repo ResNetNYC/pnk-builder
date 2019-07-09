@@ -209,8 +209,11 @@ run_docker() {
 }
 
 cleanup() {
+    systemd-nspawn --capability=all -D "$PNK_MOUNT_DIR" /bin/sh -c \
+    "/usr/bin/dpkg-divert --remove --rename --local /sbin/start-stop-daemon && \
+    /usr/bin/dpkg-divert --remove --rename --local /usr/sbin/policy-rc.d"
     service docker stop
-    unmount -R -f "$PNK_MOUNT_DIR"
+    umount -R -f "$PNK_MOUNT_DIR"
     dmsetup remove_all
     [[ "$used_mktemp" == "true" ]] && rm -rf "$PNK_TEMP_DIR"
 }
@@ -220,15 +223,18 @@ main() {
 
     check_bin curl
     check_bin dmsetup
-    check_bin docker
+    check_bin docker-compose
     check_bin kpartx
+    check_bin ln
     check_bin mkdir
     check_bin mount
     check_bin mv
     check_bin parted
     check_bin resize2fs
     check_bin rm
+    check_bin service
     check_bin sha256sum
+    check_bin systemd-nspawn
     check_bin umount
 
 
