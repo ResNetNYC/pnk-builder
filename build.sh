@@ -127,65 +127,22 @@ EOF
     }
 }
 
-setup_salt() {
-    local -r sha256sum="$1"
-    local -r mount_dir="$2"
-    # Bootstrap salt
-    if [[ ! -e "$mount_dir/bootstrap-salt.sh" ]]; then
-        curl -o "$mount_dir/bootstrap-salt.sh" -L https://bootstrap.saltstack.com || \
-            { echo "Failed to download salt-bootstrap script."; return 1; }
-    fi
-    
-    if ! ( echo "$sha256sum $mount_dir/bootstrap-salt.sh" | sha256sum -c ); then
-        echo "ERROR: Invalid checksum for Salt bootstrap script."
-        rm -f "$mount_dir/bootstrap-salt.sh"
-        return 1
-    fi
+setup_hostname() {
+    local -r old_hostname="$1"
+    local -r new_hostname="$2"
+    local -r mount_dir="$3"
 
-    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c "/bin/chmod 775 /bootstrap-salt.sh && \
-        /bootstrap-salt.sh -X -d" || {
-        echo "Salt-bootstrap execution failed."
-        return 1
-    }
-
-    echo "file_client: local" > "$mount_dir/etc/salt/minion"
-    mkdir -p "$mount_dir/srv/salt"
-    mkdir -p "$mount_dir/srv/pillar"
-    cp -rf "$PWD"/pillar/* "$mount_dir/srv/pillar/"
-    cp -rf "$PWD"/salt/* "$mount_dir/srv/salt/"
-    systemd-nspawn --capability=all -D "$mount_dir" /usr/bin/salt-call state.highstate || {
-        echo "Salt execution failed."
-        return 1
-    }
+    sed -i -e "s/${old_hostname}/${new_hostname}/" "$mount_dir/etc/hosts"
+    echo "$new_hostname" > "$mount_dir/etc/hostname"
 }
 
 setup_docker() {
     local -r mount_dir="$1"
-    shift
-    local containers=( "$@" )
-    local -i pulled=0
-    mkdir -p "$mount_dir/srv/docker"
-    for c in "${containers[@]}"; do
-        docker pull "$c" || continue
-        out="${c/\//_}"
-        out="${out/:/_}"
-        docker save -o "$mount_dir/srv/docker/$out.docker" "$c" && ((pulled++))
-    done
-    if [[ "${#containers[@]}" -ne "$pulled" ]]; then
-        return 1
-    fi
-}
 
-setup_balena() {
-    local -r mount_dir="$1"
-    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c "curl -sfL https://balena.io/engine/install.sh | sh" || {
-        echo "Balena-engine installation failed."
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c "curl -sfL https://get.docker.com | sh" || {
+        echo "Docker installation failed."
         return 1
     }
-}
-
-run_docker() {
-    local -r mount_dir="$1"
 
     # Stop local docker
     service docker stop
@@ -259,10 +216,9 @@ main() {
         resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
     fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
-#    setup_salt "$PNK_SALT_SHA256SUM" "$PNK_MOUNT_DIR" || exit 1
+    setup_hostname "raspberrypi" "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
     setup_balena "$PNK_MOUNT_DIR" || exit 1
-    run_docker "$PNK_MOUNT_DIR" || exit 1
-#    setup_docker "$PNK_MOUNT_DIR" "${PNK_CONTAINERS[@]}" || exit 1
+    setup_docker "$PNK_MOUNT_DIR" || exit 1
 
     mv "$PNK_TEMP_DIR/$image" "$PNK_OUTPUT_FILE" || exit 1
 }
