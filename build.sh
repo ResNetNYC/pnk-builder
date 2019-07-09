@@ -202,13 +202,15 @@ run_docker() {
     service docker start
 
     # Setup images
-    docker-compose up -d --no-start || {
+    docker-compose up --no-start || {
         echo "Docker image installation failed."
         return 1
     }
 }
 
 cleanup() {
+    rm "$PNK_MOUNT_DIR/sbin/start-stop-daemon"
+    rm "$PNK_MOUNT_DIR/usr/sbin/policy-rc.d"
     systemd-nspawn --capability=all -D "$PNK_MOUNT_DIR" /bin/sh -c \
     "/usr/bin/dpkg-divert --remove --rename --local /sbin/start-stop-daemon && \
     /usr/bin/dpkg-divert --remove --rename --local /usr/sbin/policy-rc.d"
