@@ -33,6 +33,7 @@ services:
       - |
         WORDPRESS_CONFIG_EXTRA=
         define('WP_SITE_URL', 'http://' . $_SERVER['HTTP_HOST'] . '/wordpress');
+        define('WP_HOME', 'http://' . $_SERVER['HTTP_HOST'] . '/wordpress');
     labels:
       - "traefik.backend=wordpress"
       - "traefik.frontend.rule=Host:{{ PNK_DOMAIN }};PathPrefix:/wordpress"

@@ -187,15 +187,7 @@ setup_html() {
 
     mkdir -p "$mount_dir/srv/www/"
     install -Dm644 "$PWD/index.html" "$mount_dir/srv/www/"
-    sed -i -e "s/{{ PNK_DOMAIN }}/${domain}/" "$mount_dir/srv/www/index.html"
-}
-
-setup_traefik() {
-    local -r mount_dir="$1"
-
-    mkdir -p "$mount_dir/etc/traefik"
-    install -Dm644 "$PWD/traefik.toml" "$mount_dir/etc/traefik/"
-    sed -i -e "s/{{ PNK_DOMAIN }}/${domain}/" "$mount_dir/etc/traefik/traefik.toml"
+    sed -i -e "s/{{ PNK_DOMAIN }}/${domain}/g" "$mount_dir/srv/www/index.html"
 }
 
 cleanup() {
@@ -254,7 +246,6 @@ main() {
     fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
     setup_html "$PNK_HOSTNAME.local" "$PNK_MOUNT_DIR" || exit 1
-    setup_traefik "$PNK_MOUNT_DIR" || exit 1
     setup_hostname "raspberrypi" "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
     setup_docker "$PNK_HOSTNAME.local" "$PNK_MOUNT_DIR" || exit 1
 
