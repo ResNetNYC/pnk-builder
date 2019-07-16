@@ -2,19 +2,18 @@ version: '3'
 services:
   traefik:
     image: arm32v6/traefik:2.0
+    command: --docker
     restart: always
     ports:
       - "80:80"
-      - "8080:8080"
     volumes:
-      - /etc/traefik/traefik.toml:/etc/traefik/traefik.toml:ro
       - /var/run/docker.sock:/var/run/docker.sock
 
   nginx:
     image: arm32v7/nginx:stable
     restart: always
     volumes:
-      - /srv/http:/usr/share/nginx/html:ro
+      - /srv/www:/usr/share/nginx/html:ro
     environment:
       - WORDPRESS_DB_HOST=mariadb:3306
       - WORDPRESS_DB_USER=wordpress
@@ -32,9 +31,9 @@ services:
       - WORDPRESS_DB_PASSWORD=wordpress
       - |
         WORDPRESS_CONFIG_EXTRA=
-        define('WP_SITE_URL', 'http://' . $_SERVER['HTTP_HOST'] . '/path/to/wordpress');
+        define('WP_SITE_URL', 'http://' . $_SERVER['HTTP_HOST'] . '/wordpress');
     labels:
-      - "traefik.backend=nginx"
+      - "traefik.backend=wordpress"
       - "traefik.frontend.rule=Host:{{ PNK_DOMAIN }};PathPrefix:/wordpress"
 
   mariadb:
