@@ -177,6 +177,7 @@ setup_html() {
     local -r domain="$1"
     local -r mount_dir="$2"
 
+    mkdir -p "$mount_dir/srv/www/"
     install -Dm644 "$PWD/index.html" "$mount_dir/srv/www/"
     sed -i -e "s/{{ PNK_DOMAIN }}/${domain}/" "$mount_dir/srv/www/index.html"
 }
@@ -184,6 +185,7 @@ setup_html() {
 setup_traefik() {
     local -r mount_dir="$1"
 
+    mkdir -p "$mount_dir/etc/traefik"
     install -Dm644 "$PWD/traefik.toml" "$mount_dir/etc/traefik/"
 }
 
