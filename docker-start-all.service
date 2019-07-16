@@ -1,0 +1,10 @@
+[Unit]
+Description=Start all never-started Docker containers
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "/usr/bin/docker start $(/usr/bin/docker ps -a -q -f status=created)"
+
+[Install]
+RequiredBy=multi-user.target

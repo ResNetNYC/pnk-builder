@@ -1,8 +1,9 @@
 version: '3'
 services:
   traefik:
-    image: arm32v6/traefik:2.0
-    command: --docker
+    image: arm32v6/traefik:1.7
+    command: 
+      - --docker
     restart: always
     ports:
       - "80:80"

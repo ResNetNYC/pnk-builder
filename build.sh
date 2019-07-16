@@ -153,6 +153,10 @@ setup_docker() {
         return 1
     }
 
+    # Install and enable docker-start-all service
+    install -Dm644 "$PWD/docker-start-all.service" "$mount_dir/etc/systemd/system/"
+    ln -sf "/etc/systemd/system/docker-start-all.service" "$mount_dir/etc/systemd/system/multi-user.target.wants/docker-start-all.service"
+
     # Stop local docker
     service docker stop
 
@@ -192,13 +196,6 @@ setup_traefik() {
     mkdir -p "$mount_dir/etc/traefik"
     install -Dm644 "$PWD/traefik.toml" "$mount_dir/etc/traefik/"
     sed -i -e "s/{{ PNK_DOMAIN }}/${domain}/" "$mount_dir/etc/traefik/traefik.toml"
-}
-
-setup_rclocal() {
-    local -r mount_dir="$1"
-
-    mkdir -p "$mount_dir/etc"
-    install -Dm755 "$PWD/rc.local" "$mount_dir/etc/rc.local"
 }
 
 cleanup() {
@@ -258,7 +255,6 @@ main() {
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
     setup_html "$PNK_HOSTNAME.local" "$PNK_MOUNT_DIR" || exit 1
     setup_traefik "$PNK_MOUNT_DIR" || exit 1
-    setup_rclocal "$PNK_MOUNT_DIR" || exit 1
     setup_hostname "raspberrypi" "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
     setup_docker "$PNK_HOSTNAME.local" "$PNK_MOUNT_DIR" || exit 1
 
