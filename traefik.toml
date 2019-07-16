@@ -6,5 +6,5 @@
 # Docker configuration backend
 ################################################################
 [docker]
-domain = "docker.local"
+domain = "{{ PNK_DOMAIN }}"
 watch = true

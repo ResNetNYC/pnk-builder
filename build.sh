@@ -145,7 +145,8 @@ setup_hostname() {
 }
 
 setup_docker() {
-    local -r mount_dir="$1"
+    local -r domain="$1"
+    local -r mount_dir="$2"
 
     systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c "curl -sfL https://get.docker.com | sh" || {
         echo "Docker installation failed."
@@ -165,6 +166,9 @@ setup_docker() {
 
     # Start local docker
     service docker start
+    
+    # Template docker-compose file
+    sed -i -e "s/{{ PNK_DOMAIN }}/${domain}/" "$PWD/docker-compose.yml"
 
     # Setup images
     docker-compose up --no-start || {
@@ -187,6 +191,14 @@ setup_traefik() {
 
     mkdir -p "$mount_dir/etc/traefik"
     install -Dm644 "$PWD/traefik.toml" "$mount_dir/etc/traefik/"
+    sed -i -e "s/{{ PNK_DOMAIN }}/${domain}/" "$mount_dir/etc/traefik/traefik.toml"
+}
+
+setup_rclocal() {
+    local -r mount_dir="$1"
+
+    mkdir -p "$mount_dir/etc"
+    install -Dm755 "$PWD/rc.local" "$mount_dir/etc/rc.local"
 }
 
 cleanup() {
@@ -247,7 +259,7 @@ main() {
     setup_html "$PNK_HOSTNAME.local" "$PNK_MOUNT_DIR" || exit 1
     setup_traefik "$PNK_MOUNT_DIR" || exit 1
     setup_hostname "raspberrypi" "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
-    setup_docker "$PNK_MOUNT_DIR" || exit 1
+    setup_docker "$PNK_HOSTNAME.local" "$PNK_MOUNT_DIR" || exit 1
 
     mv "$PNK_TEMP_DIR/$image" "$PNK_OUTPUT_FILE" || exit 1
 }
