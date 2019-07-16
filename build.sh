@@ -11,6 +11,7 @@ used_mktemp=false
 : ${PNK_BUILD_DIR:="$PWD/build"}
 : ${PNK_OUTPUT_FILE:="$PWD/build/pnk-$(date +%Y%m%dT%H%M%S).img"}
 : ${PNK_EXTEND_MB:="0"}
+: ${PNK_HOSTNAME:="pnk"}
 
 
 check_bin() {
@@ -172,6 +173,20 @@ setup_docker() {
     }
 }
 
+setup_html() {
+    local -r domain="$1"
+    local -r mount_dir="$2"
+
+    install -Dm644 "$PWD/index.html" "$mount_dir/srv/www/"
+    sed -i -e "s/{{ PNK_DOMAIN }}/${domain}/" "$mount_dir/srv/www/index.html"
+}
+
+setup_traefik() {
+    local -r mount_dir="$1"
+
+    install -Dm644 "$PWD/traefik.toml" "$mount_dir/etc/traefik/"
+}
+
 cleanup() {
     # Remove shims
     rm "$PNK_MOUNT_DIR/sbin/start-stop-daemon"
@@ -227,6 +242,8 @@ main() {
         resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
     fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
+    setup_html "$PNK_HOSTNAME.local" "$PNK_MOUNT_DIR" || exit 1
+    setup_traefik "$PNK_MOUNT_DIR" || exit 1
     setup_hostname "raspberrypi" "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
     setup_docker "$PNK_MOUNT_DIR" || exit 1
 
