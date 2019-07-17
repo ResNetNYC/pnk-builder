@@ -21,7 +21,7 @@ services:
       - WORDPRESS_DB_PASSWORD=wordpress
     labels:
       - "traefik.backend=nginx"
-      - "traefik.frontend.rule=Host:{{ PNK_DOMAIN }}"
+      - "traefik.frontend.rule=Host:{{ PNK_HOST }}"
 
   wordpress:
     image: arm32v7/wordpress:5
@@ -36,7 +36,7 @@ services:
         define('WP_HOME', 'http://' . $_SERVER['HTTP_HOST'] . '/wordpress');
     labels:
       - "traefik.backend=wordpress"
-      - "traefik.frontend.rule=Host:{{ PNK_DOMAIN }};PathPrefix:/wordpress"
+      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefixStrip:/wordpress"
 
   mariadb:
     image: jsurf/rpi-mariadb:latest

@@ -172,7 +172,7 @@ setup_docker() {
     service docker start
     
     # Template docker-compose file
-    sed -i -e "s/{{ PNK_DOMAIN }}/${domain}/" "$PWD/docker-compose.yml"
+    sed -i -e "s/{{ PNK_HOST }}/${domain}/g" "$PWD/docker-compose.yml"
 
     # Setup images
     docker-compose up --no-start || {
@@ -187,7 +187,7 @@ setup_html() {
 
     mkdir -p "$mount_dir/srv/www/"
     install -Dm644 "$PWD/index.html" "$mount_dir/srv/www/"
-    sed -i -e "s/{{ PNK_DOMAIN }}/${domain}/g" "$mount_dir/srv/www/index.html"
+    sed -i -e "s/{{ PNK_HOST }}/${domain}/g" "$mount_dir/srv/www/index.html"
 }
 
 cleanup() {
@@ -245,9 +245,9 @@ main() {
         resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
     fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
-    setup_html "$PNK_HOSTNAME.local" "$PNK_MOUNT_DIR" || exit 1
+    setup_html "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
     setup_hostname "raspberrypi" "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
-    setup_docker "$PNK_HOSTNAME.local" "$PNK_MOUNT_DIR" || exit 1
+    setup_docker "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
 
     mv "$PNK_TEMP_DIR/$image" "$PNK_OUTPUT_FILE" || exit 1
 }
