@@ -10,18 +10,18 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-  nginx:
-    image: arm32v7/nginx:stable
-    restart: always
-    volumes:
-      - /srv/www:/usr/share/nginx/html:ro
-    environment:
-      - WORDPRESS_DB_HOST=mariadb:3306
-      - WORDPRESS_DB_USER=wordpress
-      - WORDPRESS_DB_PASSWORD=wordpress
-    labels:
-      - "traefik.backend=nginx"
-      - "traefik.frontend.rule=Host:{{ PNK_HOST }}"
+        #nginx:
+        #  image: arm32v7/nginx:stable
+        #  restart: always
+        #  volumes:
+        #    - /srv/www:/usr/share/nginx/html:ro
+        #  environment:
+        #    - WORDPRESS_DB_HOST=mariadb:3306
+        #    - WORDPRESS_DB_USER=wordpress
+        #    - WORDPRESS_DB_PASSWORD=wordpress
+        #  labels:
+        #    - "traefik.backend=nginx"
+        #    - "traefik.frontend.rule=Host:{{ PNK_HOST }}"
 
   wordpress:
     image: arm32v7/wordpress:5
@@ -32,11 +32,11 @@ services:
       - WORDPRESS_DB_PASSWORD=wordpress
       - |
         WORDPRESS_CONFIG_EXTRA=
-        define('WP_SITE_URL', 'http://' . $_SERVER['HTTP_HOST'] . '/wordpress');
-        define('WP_HOME', 'http://' . $_SERVER['HTTP_HOST'] . '/wordpress');
+        define('WP_SITE_URL', 'http://' . $_SERVER['HTTP_HOST']);
+        define('WP_HOME', 'http://' . $_SERVER['HTTP_HOST']);
     labels:
       - "traefik.backend=wordpress"
-      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefixStrip:/wordpress"
+      - "traefik.frontend.rule=Host:{{ PNK_HOST }}"
 
   mariadb:
     image: jsurf/rpi-mariadb:latest
