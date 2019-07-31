@@ -5,6 +5,8 @@ services:
     command: 
       - --docker
     restart: always
+    networks:
+      - local
     ports:
       - "80:80"
     volumes:
@@ -26,14 +28,16 @@ services:
   wordpress:
     image: arm32v7/wordpress:5
     restart: always
+    networks:
+      - local
     environment:
       - WORDPRESS_DB_HOST=mariadb:3306
       - WORDPRESS_DB_USER=wordpress
       - WORDPRESS_DB_PASSWORD=wordpress
       - |
         WORDPRESS_CONFIG_EXTRA=
-        define('WP_SITE_URL', 'http://' . $_SERVER['HTTP_HOST']);
-        define('WP_HOME', 'http://' . $_SERVER['HTTP_HOST']);
+        define('WP_SITE_URL', 'http://pnk');
+        define('WP_HOME', 'http://pnk');
     labels:
       - "traefik.backend=wordpress"
       - "traefik.frontend.rule=Host:{{ PNK_HOST }}"
@@ -41,6 +45,8 @@ services:
   mariadb:
     image: jsurf/rpi-mariadb:latest
     restart: always
+    networks:
+      - local
     volumes:
       - mariadb_data:/var/lib/mysql
     environment:
@@ -52,6 +58,8 @@ services:
   unifi:
     image: ryansch/unifi-rpi:5.11.26-arm32v7
     restart: always
+    networks:
+      - local
     volumes:
       - unifi_config:/var/lib/unifi
       - unifi_logs:/var/log/unifi
@@ -61,6 +69,9 @@ services:
       - "3478:3478/udp"
       - "6789:6789"
       - "10001:10001/udp"
+
+networks:
+  local:
 
 volumes:
   mariadb_data:
