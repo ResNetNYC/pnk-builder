@@ -133,6 +133,8 @@ networks:
   local:
 
 volumes:
+  droppy_config:
+  droppy_files:
   rocketchat_uploads:
   mongodb_data:
   mariadb_data:
