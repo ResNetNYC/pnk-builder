@@ -87,7 +87,7 @@ services:
       - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix=/chat"
 
   mongo:
-    image: webhippie/mongodb:latest-armv32v7
+    image: webhippie/mongodb:latest-arm32v7
     restart: unless-stopped
     volumes:
      - mongodb_data:/var/lib/mongodb
