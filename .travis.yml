@@ -20,7 +20,7 @@ services:
   - docker
 install: true
 env:
-- PNK_CACHE_DIR=./cache PNK_OUTPUT_FILE=./build/pnk.img PNK_EXTEND_MB=2500
+- PNK_CACHE_DIR=./cache PNK_OUTPUT_FILE=./build/pnk.img PNK_EXTEND_MB=4000
 script:
 - sudo bash ./build.sh
 before_deploy:
