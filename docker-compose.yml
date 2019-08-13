@@ -12,19 +12,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-        #nginx:
-        #  image: arm32v7/nginx:stable
-        #  restart: always
-        #  volumes:
-        #    - /srv/www:/usr/share/nginx/html:ro
-        #  environment:
-        #    - WORDPRESS_DB_HOST=mariadb:3306
-        #    - WORDPRESS_DB_USER=wordpress
-        #    - WORDPRESS_DB_PASSWORD=wordpress
-        #  labels:
-        #    - "traefik.backend=nginx"
-        #    - "traefik.frontend.rule=Host:{{ PNK_HOST }}"
-
   wordpress:
     image: arm32v7/wordpress:5
     restart: always
@@ -70,10 +57,84 @@ services:
       - "6789:6789"
       - "10001:10001/udp"
 
+  rocketchat:
+    image: rocketchat/rocket.chat:latest
+    command: >
+      bash -c
+        "for i in `seq 1 30`; do
+          node main.js &&
+          s=$$? && break || s=$$?;
+          echo \"Tried $$i times. Waiting 5 secs...\";
+          sleep 5;
+        done; (exit $$s)"
+    restart: unless-stopped
+    volumes:
+      - rocketchat_uploads:/app/uploads
+    environment:
+      - PORT=3000
+      - ROOT_URL=http://localhost:3000/chat
+      - MONGO_URL=mongodb://mongo:27017/rocketchat
+      - MONGO_OPLOG_URL=mongodb://mongo:27017/local
+      - MAIL_URL=smtp://smtp.email
+#       - HTTP_PROXY=http://proxy.domain.com
+#       - HTTPS_PROXY=http://proxy.domain.com
+    depends_on:
+      - mongo
+    ports:
+      - 3000:3000
+    labels:
+      - "traefik.backend=rocketchat"
+      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix=/chat"
+
+  mongo:
+    image: webhippie/mongodb:latest-armv32v7
+    restart: unless-stopped
+    volumes:
+     - mongodb_data:/var/lib/mongodb
+    environment:
+      - MONGODB_SMALLFILES=true
+      - MONGODB_OPLOG_SIZE=128
+      - MONGODB_REPL_SET=rs0
+      - MONGODB_STORAGE_ENGINE=mmapv1
+    labels:
+      - "traefik.enable=false"
+
+  # this container's job is just run the command to initialize the replica set.
+  # it will run the command and remove himself (it will not stay running)
+  mongo-init-replica:
+    image: webhippie/mongodb:latest-armv32v7
+    command: >
+      bash -c
+        "for i in `seq 1 30`; do
+          mongo mongo/rocketchat --eval \"
+            rs.initiate({
+              _id: 'rs0',
+              members: [ { _id: 0, host: 'localhost:27017' } ]})\" &&
+          s=$$? && break || s=$$?;
+          echo \"Tried $$i times. Waiting 5 secs...\";
+          sleep 5;
+        done; (exit $$s)"
+    depends_on:
+      - mongo
+
+  droppy:
+    image: silverwind/droppy
+    restart: unless-stopped
+    volumes:
+      - droppy_config:/config
+      - droppy_files:/files
+    ports:
+      - 3000:3000
+    labels:
+      - "traefik.backend=droppy"
+      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix=/files"
+
 networks:
   local:
 
 volumes:
+  rocketchat_uploads:
+  mongodb_data:
   mariadb_data:
   unifi_config:
   unifi_logs:
