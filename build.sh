@@ -182,13 +182,11 @@ setup_docker() {
     }
 }
 
-setup_html() {
-    local -r domain="$1"
-    local -r mount_dir="$2"
+setup_configs() {
+    local -r mount_dir="$1"
 
-    mkdir -p "$mount_dir/srv/www/"
-    install -Dm644 "$PWD/index.html" "$mount_dir/srv/www/"
-    sed -i -e "s/{{ PNK_HOST }}/${domain}/g" "$mount_dir/srv/www/index.html"
+    mkdir -p "$mount_dir/srv/"
+    cp -rf "$PWD/configs/*" "$mount_dir/srv/"
 }
 
 cleanup() {
@@ -246,7 +244,7 @@ main() {
         resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
     fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
-    setup_html "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
+    setup_configs "$PNK_MOUNT_DIR" || exit 1
     setup_hostname "raspberrypi" "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
     setup_docker "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
 

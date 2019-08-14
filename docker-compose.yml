@@ -84,7 +84,7 @@ services:
       - PGID=1000
       - TZ=America/New_York
     volumes:
-      - ngircd_config:/config
+      - /srv/ngircd:/config
     restart: unless-stopped
 
   thelounge:
@@ -97,7 +97,7 @@ services:
       - PGID=1000
       - TZ=America/New_York
     volumes:
-      - thelounge_config:/config
+      - /srv/thelounge:/config
     restart: unless-stopped
     ports:
       - "9000:9000"
@@ -105,106 +105,31 @@ services:
       - "traefik.backend=thelounge"
       - "traefik.port=9000"
       - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/chat/"
+      - "traefik.frontend.redirect.regex=^(.*)/chat$$"
+      - "traefik.frontend.redirect.replacement=$$1/chat/"
+      - "traefik.frontend.rule=PathPrefix:/chat;ReplacePathRegex: ^/chat/(.*) /$$1"
   
-        
-        #  unifi:
-        #    image: ryansch/unifi-rpi:5.11.26-arm32v7
-        #    restart: always
-        #    networks:
-        #      - local
-        #    volumes:
-        #      - unifi_config:/var/lib/unifi
-        #      - unifi_logs:/var/log/unifi
-        #    ports:
-        #      - "8080:8080"
-        #      - "8443:8443"
-        #      - "3478:3478/udp"
-        #      - "6789:6789"
-        #      - "10001:10001/udp"
-        #
-        #  rocketchat:
-        #    image: rocketchat/rocket.chat:latest
-        #    command: >
-        #      bash -c
-        #        "for i in `seq 1 30`; do
-        #          node main.js &&
-        #          s=$$? && break || s=$$?;
-        #          echo \"Tried $$i times. Waiting 5 secs...\";
-        #          sleep 5;
-        #        done; (exit $$s)"
-        #    restart: unless-stopped
-        #    volumes:
-        #      - rocketchat_uploads:/app/uploads
-        #    environment:
-        #      - PORT=3000
-        #      - ROOT_URL=http://localhost:3000/chat
-        #      - MONGO_URL=mongodb://mongo:27017/rocketchat
-        #      - MONGO_OPLOG_URL=mongodb://mongo:27017/local
-        #      - MAIL_URL=smtp://smtp.email
-        ##       - HTTP_PROXY=http://proxy.domain.com
-        ##       - HTTPS_PROXY=http://proxy.domain.com
-        #    depends_on:
-        #      - mongo
-        #    ports:
-        #      - 3000:3000
-        #    labels:
-        #      - "traefik.backend=rocketchat"
-        #      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix=/chat"
-        #
-        #  mongo:
-        #    image: webhippie/mongodb:latest-arm32v7
-        #    restart: unless-stopped
-        #    volumes:
-        #     - mongodb_data:/var/lib/mongodb
-        #    environment:
-        #      - MONGODB_SMALLFILES=true
-        #      - MONGODB_OPLOG_SIZE=128
-        #      - MONGODB_REPL_SET=rs0
-        #      - MONGODB_STORAGE_ENGINE=mmapv1
-        #    labels:
-        #      - "traefik.enable=false"
-        #
-        #  # this container's job is just run the command to initialize the replica set.
-        #  # it will run the command and remove himself (it will not stay running)
-        #  mongo-init-replica:
-        #    image: webhippie/mongodb:latest-arm32v7
-        #    command: >
-        #      bash -c
-        #        "for i in `seq 1 30`; do
-        #          mongo mongo/rocketchat --eval \"
-        #            rs.initiate({
-        #              _id: 'rs0',
-        #              members: [ { _id: 0, host: 'localhost:27017' } ]})\" &&
-        #          s=$$? && break || s=$$?;
-        #          echo \"Tried $$i times. Waiting 5 secs...\";
-        #          sleep 5;
-        #        done; (exit $$s)"
-        #    depends_on:
-        #      - mongo
-
   droppy:
     image: silverwind/armhf-droppy
     container_name: droppy
     restart: unless-stopped
     volumes:
-      - droppy_config:/config
+      - /srv/droppy:/config
       - droppy_files:/files
     ports:
-      - 3000:3000
+      - 8989:8989
     labels:
       - "traefik.backend=droppy"
-      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/files/"
+      - "traefik.port=8989"
+      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/files"
+      - "traefik.frontend.redirect.regex=^(.*)/files$$"
+      - "traefik.frontend.redirect.replacement=$$1/files/"
+      - "traefik.frontend.rule=PathPrefix:/files;ReplacePathRegex: ^/files/(.*) /$$1"
 
 networks:
   local:
 
 volumes:
-  droppy_config:
   droppy_files:
-  ngircd_config:
-  thelounge_config:
-  rocketchat_uploads:
-  mongodb_data:
   mariadb_data:
   unifi_config:
-  unifi_logs:
