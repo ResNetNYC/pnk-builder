@@ -49,7 +49,7 @@ services:
     image: linuxserver/unifi-controller:arm32v7-latest
     container_name: unifi
     restart: always
-    networks_mode: "host"
+    network_mode: "host"
     environment:
       - PUID=1000
       - PGID=1000
