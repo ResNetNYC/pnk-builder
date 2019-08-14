@@ -176,6 +176,7 @@ services:
 
   droppy:
     image: silverwind/droppy
+    container_name: droppy
     restart: unless-stopped
     volumes:
       - droppy_config:/config
