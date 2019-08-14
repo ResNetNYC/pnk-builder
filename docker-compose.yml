@@ -5,7 +5,7 @@ services:
     container_name: traefik
     command: 
       - --docker
-    restart: always
+    restart: unless-stopped
     networks:
       - local
     ports:
@@ -16,7 +16,7 @@ services:
   wordpress:
     image: arm32v7/wordpress:5
     container_name: wordpress
-    restart: always
+    restart: unless-stopped
     networks:
       - local
     environment:
@@ -31,10 +31,18 @@ services:
       - "traefik.backend=wordpress"
       - "traefik.frontend.rule=Host:{{ PNK_HOST }}"
 
+  wordpress-cli:
+    image: arm32v7/wordpress:cli
+    container_name: wordpress
+    restart: unless-stopped
+    networks:
+      - local
+    command: cli version
+
   mariadb:
     image: jsurf/rpi-mariadb:latest
     container_name: mariadb
-    restart: always
+    restart: unless-stopped
     networks:
       - local
     volumes:
@@ -48,7 +56,7 @@ services:
   unifi:
     image: linuxserver/unifi-controller:arm32v7-latest
     container_name: unifi
-    restart: always
+    restart: unless-stopped
     network_mode: "host"
     environment:
       - PUID=1000
@@ -96,7 +104,7 @@ services:
     labels:
       - "traefik.backend=thelounge"
       - "traefik.port=9000"
-      - "traefik.frontend.rule=Host:{{ PNK_HOST }}; PathPrefix=/chat/"
+      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/chat/"
   
         
         #  unifi:
@@ -185,7 +193,7 @@ services:
       - 3000:3000
     labels:
       - "traefik.backend=droppy"
-      - "traefik.frontend.rule=Host:{{ PNK_HOST }}; PathPrefix=/files/"
+      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/files/"
 
 networks:
   local:
