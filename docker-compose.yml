@@ -34,7 +34,7 @@ services:
   wordpress-cli:
     image: arm32v7/wordpress:cli
     container_name: wordpress-cli
-    restart: unless-stopped
+    restart: "no"
     networks:
       - local
     command: cli version
