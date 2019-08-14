@@ -96,7 +96,7 @@ services:
     labels:
       - "traefik.backend=thelounge"
       - "traefik.port=9000"
-      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix=/chat/"
+      - "traefik.frontend.rule=Host:{{ PNK_HOST }}; PathPrefix=/chat/"
   
         
         #  unifi:
@@ -175,7 +175,7 @@ services:
         #      - mongo
 
   droppy:
-    image: silverwind/droppy
+    image: silverwind/armhf-droppy
     container_name: droppy
     restart: unless-stopped
     volumes:
@@ -185,7 +185,7 @@ services:
       - 3000:3000
     labels:
       - "traefik.backend=droppy"
-      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix=/files/"
+      - "traefik.frontend.rule=Host:{{ PNK_HOST }}; PathPrefix=/files/"
 
 networks:
   local:
