@@ -186,7 +186,9 @@ setup_configs() {
     local -r mount_dir="$1"
 
     mkdir -p "$mount_dir/srv/"
-    cp -rf "$PWD/configs/*" "$mount_dir/srv/"
+    cp -rf "$PWD/configs/droppy" "$mount_dir/srv/"
+    cp -rf "$PWD/configs/ngircd" "$mount_dir/srv/"
+    cp -rf "$PWD/configs/thelounge" "$mount_dir/srv/"
 }
 
 cleanup() {
