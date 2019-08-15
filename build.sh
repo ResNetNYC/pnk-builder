@@ -13,6 +13,7 @@ used_mktemp=false
 : ${PNK_OUTPUT_FILE:="$PWD/build/pnk-$(date +%Y%m%dT%H%M%S).img"}
 : ${PNK_EXTEND_MB:="0"}
 : ${PNK_HOSTNAME:="pnk"}
+: ${PNK_WORDPRESS_IMPORTER_URL:="https://downloads.wordpress.org/plugin/wordpress-importer.0.6.4.zip"}
 
 
 check_bin() {
@@ -183,12 +184,16 @@ setup_docker() {
 }
 
 setup_configs() {
-    local -r mount_dir="$1"
+    local -r wp_url="$1"
+    local -r mount_dir="$2"
 
     mkdir -p "$mount_dir/srv/"
     cp -rf "$PWD/configs/droppy" "$mount_dir/srv/"
     cp -rf "$PWD/configs/ngircd" "$mount_dir/srv/"
     cp -rf "$PWD/configs/thelounge" "$mount_dir/srv/"
+    cp -rf "$PWD/configs/wordpress" "$mount_dir/srv/"
+    curl -o "$mount_dir/srv/wordpress/wordpress-importer.zip" -L "$wp_url" ||
+        { echo "Failed to download wordpress importer plugin."; return 1; }
 }
 
 cleanup() {

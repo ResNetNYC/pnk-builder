@@ -16,9 +16,13 @@ services:
   wordpress:
     image: arm32v7/wordpress:5
     container_name: wordpress
+    depends_on:
+      - mariadb
     restart: unless-stopped
     networks:
       - local
+    volumes:
+      - wordpress_data:/var/www/html
     environment:
       - WORDPRESS_DB_HOST=mariadb:3306
       - WORDPRESS_DB_USER=wordpress
@@ -34,10 +38,22 @@ services:
   wordpress-cli:
     image: arm32v7/wordpress:cli
     container_name: wordpress-cli
+    depends_on:
+      - wordpress
+      - mariadb
     restart: "no"
     networks:
       - local
-    command: cli version
+    volumes:
+      - wordpress_data:/var/www/html
+      - /srv/wordpress:/files
+    command: >
+      /bin/sh -c '
+      wp core is-installed || {
+        wp core install --url=pnk --title=PNK --admin_user=pnk --admin_password=pnk --admin_email=contact@pnkgo.com --skip-email
+        wp plugin install /files/wordpress-importer.zip
+        wp import /files/portablenetworkkitpnk.WordPress.2019-08-14.xml --authors=create
+      }'
 
   mariadb:
     image: jsurf/rpi-mariadb:latest
@@ -121,15 +137,16 @@ services:
     labels:
       - "traefik.backend=droppy"
       - "traefik.port=8989"
-      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/files"
-      - "traefik.frontend.redirect.regex=^(.*)/files$$"
-      - "traefik.frontend.redirect.replacement=$$1/files/"
-      - "traefik.frontend.rule=PathPrefix:/files;ReplacePathRegex: ^/files/(.*) /$$1"
+      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/fileshare"
+      - "traefik.frontend.redirect.regex=^(.*)/fileshare$$"
+      - "traefik.frontend.redirect.replacement=$$1/fileshare/"
+      - "traefik.frontend.rule=PathPrefix:/fileshare;ReplacePathRegex: ^/fileshare/(.*) /$$1"
 
 networks:
   local:
 
 volumes:
+  wordpress_files:
   droppy_files:
   mariadb_data:
   unifi_config:
