@@ -251,7 +251,7 @@ main() {
         resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
     fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
-    setup_configs "$PNK_MOUNT_DIR" || exit 1
+    setup_configs "$PNK_WORDPRESS_IMPORTER_URL" "$PNK_MOUNT_DIR" || exit 1
     setup_hostname "raspberrypi" "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
     setup_docker "$PNK_HOSTNAME" "$PNK_MOUNT_DIR" || exit 1
 
