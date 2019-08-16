@@ -48,12 +48,12 @@ services:
       - wordpress_data:/var/www/html
       - /srv/wordpress:/files
     command: >
-      /bin/sh -c '\
-      sleep 10 \
-      wp core is-installed --path=/var/www/html || { \
-        wp core install --path=/var/www/html --url=pnk --title=PNK --admin_user=pnk --admin_password=pnk --admin_email=contact@pnkgo.com --skip-email \
-        wp plugin install /files/wordpress-importer.zip \
-        wp import /files/portablenetworkkitpnk.WordPress.2019-08-14.xml --authors=create \
+      /bin/sh -c '
+      sleep 10;
+      wp core is-installed --path=/var/www/html || {
+        wp core install --path=/var/www/html --url=pnk --title=PNK --admin_user=pnk --admin_password=pnk --admin_email=contact@pnkgo.com --skip-email;
+        wp plugin install /files/wordpress-importer.zip;
+        wp import /files/portablenetworkkitpnk.WordPress.2019-08-14.xml --authors=create;
       }'
 
   mariadb:
