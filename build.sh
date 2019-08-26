@@ -131,7 +131,7 @@ EOF
     /usr/sbin/locale-gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
     apt-get -qq update && \
-    apt-get install -y --no-install-recommends curl git libffi-dev python python-dev python-setuptools python-pip python-backports.ssl-match-hostname python-cffi python-nacl python-cryptography python-bcrypt python-paramiko" || {
+    apt-get install -y --no-install-recommends curl git libffi-dev python python-dev python-setuptools python-pip python-backports.ssl-match-hostname python-cffi python-nacl libssl-dev" || {
         echo "Failed to initialize chroot locale and install dependencies."
         return 1
     }
