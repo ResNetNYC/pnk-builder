@@ -49,7 +49,7 @@ services:
       - /srv/wordpress:/files:ro
     environment:
       - HOME=/tmp
-    user: 33:33
+    user: "33:33"
     command: >
       /bin/sh -c '
       sleep 10;
