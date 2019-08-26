@@ -157,7 +157,7 @@ setup_docker() {
     }
 
     # Install docker-compose into chroot
-    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c "pip install docker-compose" || {
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c "pip install --no-cache-dir docker-compose" || {
         echo "Docker-compose installation failed."
         return 1
     }
