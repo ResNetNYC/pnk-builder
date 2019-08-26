@@ -131,7 +131,7 @@ EOF
     /usr/sbin/locale-gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
     apt-get -qq update && \
-    apt-get install -y --no-install-recommends curl git" || {
+    apt-get install -y --no-install-recommends curl git python python-pip" || {
         echo "Failed to initialize chroot locale and install dependencies."
         return 1
     }
@@ -157,7 +157,7 @@ setup_docker() {
     }
 
     # Install docker-compose into chroot
-    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c "sudo curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose" || {
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c "pip install docker-compose" || {
         echo "Docker-compose installation failed."
         return 1
     }

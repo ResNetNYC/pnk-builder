@@ -4,7 +4,7 @@ After=docker.service
 
 [Service]
 Type=oneshot
-ExecStart=/bin/sh -c "/usr/local/bin/docker-compose -f /etc/pnk/docker-compose.yml up -d"
+ExecStart=/bin/sh -c "docker-compose -f /etc/pnk/docker-compose.yml up -d"
 
 [Install]
 RequiredBy=multi-user.target
