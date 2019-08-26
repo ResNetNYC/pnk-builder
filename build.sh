@@ -131,7 +131,7 @@ EOF
     /usr/sbin/locale-gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
     apt-get -qq update && \
-    apt-get install -y --no-install-recommends curl git python python-pip" || {
+    apt-get install -y --no-install-recommends curl git python python-setuptools python-pip" || {
         echo "Failed to initialize chroot locale and install dependencies."
         return 1
     }
