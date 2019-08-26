@@ -150,10 +150,21 @@ setup_docker() {
     local -r domain="$1"
     local -r mount_dir="$2"
 
+    # Install docker into chroot
     systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c "curl -sfL https://get.docker.com | sh" || {
         echo "Docker installation failed."
         return 1
     }
+
+    # Install docker-compose into chroot
+    systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c "sudo curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose" || {
+        echo "Docker-compose installation failed."
+        return 1
+    }
+
+    # Install docker-compose.yml into chroot
+    mkdir -p "$mount_dir/etc/pnk"
+    install -Dm644 "$PWD/docker-compose.yml" "$mount_dir/etc/pnk/"
 
     # Install and enable docker-start-all service
     install -Dm644 "$PWD/docker-start-all.service" "$mount_dir/etc/systemd/system/"
