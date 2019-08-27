@@ -52,7 +52,7 @@ services:
     user: "33:33"
     command: >
       /bin/sh -c '
-      sleep 10;
+      sleep 60;
       wp core is-installed --path=/var/www/html || {
         wp core install --path=/var/www/html --url=pnk --title=PNK --admin_user=pnk --admin_password=pnk --admin_email=contact@pnkgo.com --skip-email;
         wp plugin install --path=/var/www/html --activate /files/wordpress-importer.zip;
