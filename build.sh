@@ -163,7 +163,7 @@ setup_docker() {
     }
 
     # Install docker-compose.yml into chroot
-    mkdir -p "$mount_dir/etc/pnk"
+    mkdir -p "$mount_dir/etc/pnk-builder"
     install -Dm644 "$PWD/docker-compose.yml" "$mount_dir/etc/pnk-builder/"
 
     # Install and enable docker-start-all service
