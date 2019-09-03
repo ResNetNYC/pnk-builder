@@ -22,7 +22,7 @@ install: true
 env:
 - PNK_CACHE_DIR=./cache PNK_OUTPUT_FILE=./build/pnk.img PNK_EXTEND_MB=2000
 script:
-- sudo bash travis_wait ./build.sh
+- sudo bash ./build.sh
 before_deploy:
 - sudo zip build/pnk.zip build/pnk.img
 deploy:
