@@ -162,13 +162,14 @@ setup_docker() {
         return 1
     }
 
-    # Install docker-compose.yml into chroot
-    mkdir -p "$mount_dir/etc/pnk-builder"
-    install -Dm644 "$PWD/docker-compose.yml" "$mount_dir/etc/pnk-builder/"
-
     # Install and enable docker-start-all service
     install -Dm644 "$PWD/docker-start-all.service" "$mount_dir/etc/systemd/system/"
     ln -sf "/etc/systemd/system/docker-start-all.service" "$mount_dir/etc/systemd/system/multi-user.target.wants/docker-start-all.service"
+
+    # Install and enable setup-wordpress service
+    install -Dm644 "$PWD/setup-wordpress.service" "$mount_dir/etc/systemd/system/"
+    install -Dm755 "$PWD/setup-wordpress.sh" "$mount_dir/usr/local/bin/"
+    ln -sf "/etc/systemd/system/setup-wordpress.service" "$mount_dir/etc/systemd/system/multi-user.target.wants/setup-wordpress.service"
 
     # Stop local docker
     service docker stop
@@ -186,6 +187,21 @@ setup_docker() {
     
     # Template docker-compose file
     sed -i -e "s/{{ PNK_HOST }}/${domain}/g" "$PWD/docker-compose.yml"
+
+    # Install docker-compose.yml into chroot
+    mkdir -p "$mount_dir/etc/pnk-builder"
+    install -Dm644 "$PWD/docker-compose.yml" "$mount_dir/etc/pnk-builder/"
+
+    # Pull wordpress:cli image
+    docker pull arm32v7/wordpress:cli
+
+    # Build local images
+    for i in $PWD/docker/*
+    do
+        local name="$(basename $i)"
+        cp "/usr/bin/qemu-arm-static" "$PWD/docker/$name"
+        docker build -t "$name:local" "$PWD/docker/$name"
+    done
 
     # Setup images
     docker-compose up --no-start || {

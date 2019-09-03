@@ -35,29 +35,6 @@ services:
       - "traefik.backend=wordpress"
       - "traefik.frontend.rule=Host:{{ PNK_HOST }}"
 
-  wordpress-cli:
-    image: arm32v7/wordpress:cli
-    container_name: wordpress-cli
-    depends_on:
-      - wordpress
-      - mariadb
-    restart: "no"
-    networks:
-      - local
-    volumes:
-      - wordpress_data:/var/www/html
-      - /srv/wordpress:/files:ro
-    environment:
-      - HOME=/tmp
-    user: "33:33"
-    command: >
-      /bin/sh -c '
-      sleep 60;
-      wp core is-installed --path=/var/www/html || {
-        wp core install --path=/var/www/html --url=pnk --title=PNK --admin_user=pnk --admin_password=pnk --admin_email=contact@pnkgo.com --skip-email;
-        wp plugin install --path=/var/www/html --activate /files/wordpress-importer.zip;
-      }'
-
   mariadb:
     image: jsurf/rpi-mariadb:latest
     container_name: mariadb
@@ -93,53 +70,49 @@ services:
       - "8880:8880"
       - "6789:6789"
 
-  ngircd:
-    image: linuxserver/ngircd:arm32v7-latest
-    container_name: ngircd
+  etherpad:
+    image: etherpad:local
+    container_name: etherpad
     networks:
       - local
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
-    volumes:
-      - /srv/ngircd:/config
+    ports:
+      - "9001:9001"
     restart: unless-stopped
+    labels:
+      - "traefik.backend=etherpad"
+      - "traefik.port=9001"
+      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/pad/"
+      - "traefik.frontend.redirect.regex=^(.*)/pad$$"
+      - "traefik.frontend.redirect.replacement=$$1/pad/"
+      - "traefik.frontend.rule=PathPrefix:/pad;ReplacePathRegex: ^/pad/(.*) /$$1"
 
-  thelounge:
-    image: linuxserver/thelounge:arm32v7-latest
-    container_name: thelounge
+  raspchat:
+    image: raspchat:local
+    container_name: raspchat
     networks:
       - local
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
-    volumes:
-      - /srv/thelounge:/config
     restart: unless-stopped
     ports:
-      - "9000:9000"
+      - "9000:3030"
     labels:
-      - "traefik.backend=thelounge"
-      - "traefik.port=9000"
+      - "traefik.backend=raspchat"
+      - "traefik.port=3030"
       - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/chat/"
       - "traefik.frontend.redirect.regex=^(.*)/chat$$"
       - "traefik.frontend.redirect.replacement=$$1/chat/"
       - "traefik.frontend.rule=PathPrefix:/chat;ReplacePathRegex: ^/chat/(.*) /$$1"
   
-  droppy:
-    image: silverwind/armhf-droppy
-    container_name: droppy
+  filedrop:
+    image: filedrop:local
+    container_name: filedrop
     restart: unless-stopped
     volumes:
-      - /srv/droppy:/config
-      - droppy_files:/files
+      - filedrop_files:/var/drops
     ports:
-      - 8989:8989
+      - 8989:8080
     labels:
-      - "traefik.backend=droppy"
-      - "traefik.port=8989"
+      - "traefik.backend=filedrop"
+      - "traefik.port=8080"
       - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/fileshare"
       - "traefik.frontend.redirect.regex=^(.*)/fileshare$$"
       - "traefik.frontend.redirect.replacement=$$1/fileshare/"
@@ -150,6 +123,6 @@ networks:
 
 volumes:
   wordpress_data:
-  droppy_files:
+  filedrop_files:
   mariadb_data:
   unifi_config:

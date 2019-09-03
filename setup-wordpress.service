@@ -1,0 +1,10 @@
+[Unit]
+Description=Wait until Wordpress has started, and then configure it.
+After=docker-start-all.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/setup-wordpress.sh
+
+[Install]
+RequiredBy=multi-user.target
