@@ -9,7 +9,7 @@ RUN echo "Getting Raspchat" && \
 		--silent \
 		--show-error \
 		--output /opt/raspchat.tar.gz \
-		https://github.com/zix99/raspchat/archive/master.tar.gz && \
+		https://github.com/maxpert/raspchat/archive/master.tar.gz && \
 	mkdir /opt/raspchat && \
 	tar xf /opt/raspchat.tar.gz \
 		--directory /opt/raspchat \

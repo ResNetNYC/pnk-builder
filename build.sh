@@ -196,12 +196,12 @@ setup_docker() {
     docker pull arm32v7/wordpress:cli
 
     # Build local images
-    for i in $PWD/docker/*
-    do
-        local name="$(basename $i)"
-        cp "/usr/bin/qemu-arm-static" "$PWD/docker/$name"
-        docker build -t "$name:local" "$PWD/docker/$name"
-    done
+    #for i in $PWD/docker/*
+    #do
+    #    local name="$(basename $i)"
+    #    cp "/usr/bin/qemu-arm-static" "$PWD/docker/$name"
+    #    docker build -t "$name:local" "$PWD/docker/$name"
+    #done
 
     # Setup images
     docker-compose up --no-start || {

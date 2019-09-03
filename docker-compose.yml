@@ -71,7 +71,7 @@ services:
       - "6789:6789"
 
   etherpad:
-    image: etherpad:local
+    image: jheretic/etherpad:latest
     container_name: etherpad
     networks:
       - local
@@ -87,7 +87,7 @@ services:
       - "traefik.frontend.rule=PathPrefix:/pad;ReplacePathRegex: ^/pad/(.*) /$$1"
 
   raspchat:
-    image: raspchat:local
+    image: jheretic/raspchat:latest
     container_name: raspchat
     networks:
       - local
@@ -103,7 +103,7 @@ services:
       - "traefik.frontend.rule=PathPrefix:/chat;ReplacePathRegex: ^/chat/(.*) /$$1"
   
   filedrop:
-    image: filedrop:local
+    image: jheretic/filedrop:latest
     container_name: filedrop
     restart: unless-stopped
     volumes:
