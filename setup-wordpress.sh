@@ -19,9 +19,9 @@ main() {
         sleep 10
     done
 
-    docker run -it --rm --volumes-from wordpress --network container:wordpress --user 33:33 arm32v7/wordpress:cli wp core is-installed --path=/var/www/html || {
+    docker run --rm --volumes-from wordpress --network container:wordpress --user 33:33 arm32v7/wordpress:cli wp core is-installed --path=/var/www/html || {
         echo "Wordpress found but not installed. Installing."
-        docker run -it --rm --volumes-from wordpress -v /srv/wordpress:/files -e PNK_HOSTNAME --network container:wordpress --user 33:33 arm32v7/wordpress:cli sh -c "\
+        docker run --rm --volumes-from wordpress -v /srv/wordpress:/files -e PNK_HOSTNAME --network container:wordpress --user 33:33 arm32v7/wordpress:cli sh -c "\
             wp core install --path=/var/www/html --url=$PNK_HOSTNAME --title=PNK --admin_user=pnk --admin_password=pnk --admin_email=contact@pnkgo.com --skip-email;
             wp plugin install --path=/var/www/html --activate /files/wordpress-importer.zip"
         exit

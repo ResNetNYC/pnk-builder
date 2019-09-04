@@ -1,18 +1,5 @@
 version: '3'
 services:
-  traefik:
-    image: arm32v6/traefik:1.7
-    container_name: traefik
-    command: 
-      - --docker
-    restart: unless-stopped
-    networks:
-      - local
-    ports:
-      - "80:80"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-
   wordpress:
     image: arm32v7/wordpress:5
     container_name: wordpress
@@ -23,6 +10,8 @@ services:
       - local
     volumes:
       - wordpress_data:/var/www/html
+    ports:
+      - "80:80"
     environment:
       - WORDPRESS_DB_HOST=mariadb:3306
       - WORDPRESS_DB_USER=wordpress
@@ -31,9 +20,6 @@ services:
         WORDPRESS_CONFIG_EXTRA=
         define('WP_SITE_URL', 'http://pnk');
         define('WP_HOME', 'http://pnk');
-    labels:
-      - "traefik.backend=wordpress"
-      - "traefik.frontend.rule=Host:{{ PNK_HOST }}"
 
   mariadb:
     image: jsurf/rpi-mariadb:latest
@@ -78,45 +64,28 @@ services:
     ports:
       - "9001:9001"
     restart: unless-stopped
-    labels:
-      - "traefik.backend=etherpad"
-      - "traefik.port=9001"
-      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/pad/"
-      - "traefik.frontend.redirect.regex=^(.*)/pad$$"
-      - "traefik.frontend.redirect.replacement=$$1/pad/"
-      - "traefik.frontend.rule=PathPrefix:/pad;ReplacePathRegex: ^/pad/(.*) /$$1"
 
   raspchat:
     image: jheretic/raspchat:latest
     container_name: raspchat
+    hostname: pnk
     networks:
       - local
     restart: unless-stopped
     ports:
-      - "9000:3030"
-    labels:
-      - "traefik.backend=raspchat"
-      - "traefik.port=3030"
-      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/chat/"
-      - "traefik.frontend.redirect.regex=^(.*)/chat$$"
-      - "traefik.frontend.redirect.replacement=$$1/chat/"
-      - "traefik.frontend.rule=PathPrefix:/chat;ReplacePathRegex: ^/chat/(.*) /$$1"
-  
+      - "3030:3030"
+    environment:
+      - RC_URL=http://pnk:3030
+      - WS_URL=ws://pnk:3030/chat
+
   filedrop:
     image: jheretic/filedrop:latest
     container_name: filedrop
     restart: unless-stopped
-    volumes:
-      - filedrop_files:/var/drops
     ports:
-      - 8989:8080
-    labels:
-      - "traefik.backend=filedrop"
-      - "traefik.port=8080"
-      - "traefik.frontend.rule=Host:{{ PNK_HOST }};PathPrefix:/fileshare"
-      - "traefik.frontend.redirect.regex=^(.*)/fileshare$$"
-      - "traefik.frontend.redirect.replacement=$$1/fileshare/"
-      - "traefik.frontend.rule=PathPrefix:/fileshare;ReplacePathRegex: ^/fileshare/(.*) /$$1"
+      - 8989:8989
+    environment:
+      - filedrop_port=8989
 
 networks:
   local:
