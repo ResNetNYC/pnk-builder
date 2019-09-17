@@ -1,0 +1,16 @@
+#!/usr/bin/with-contenv bash
+
+
+
+WSPROTOCOL=${WSPROTOCOL:-"ws://"}
+WSPORT=${WSPORT:-"6060"}
+WSBASEURL=${WSBASEURL:-""}
+
+sed -i "s|('ws://' + document.domain + ':6060')|('${WSPROTOCOL}' + document.domain + ':${WSPORT}' + '${WSBASEURL}')|g" /app/client/client.js
+
+sed -i "s/admin-name-here/${ADMIN_NAME}/g" /app/server/config/config.json
+sed -i "s/admin-pass-here/${PASSWORD}/g" /app/server/config/config.json
+sed -i "s/insert-randomly-generated-string-here/${SALT}/g" /app/server/config/config.json
+
+
+

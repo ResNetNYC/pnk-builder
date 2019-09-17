@@ -215,6 +215,7 @@ setup_configs() {
     local -r mount_dir="$2"
 
     mkdir -p "$mount_dir/srv/"
+    cp -rf "$PWD/configs/droppy" "$mount_dir/srv/"
     cp -rf "$PWD/configs/wordpress" "$mount_dir/srv/"
     curl -o "$mount_dir/srv/wordpress/wordpress-importer.zip" -L "$wp_url" ||
         { echo "Failed to download wordpress importer plugin."; return 1; }

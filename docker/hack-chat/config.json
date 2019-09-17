@@ -1,0 +1,7 @@
+{
+  "adminName": "admin-name-here",
+  "adminPass": "admin-pass-here",
+  "mods": [],
+  "websocketPort": "6060",
+  "tripSalt": "insert-randomly-generated-string-here"
+}

@@ -65,33 +65,40 @@ services:
       - "9001:9001"
     restart: unless-stopped
 
-  raspchat:
-    image: jheretic/raspchat:latest
-    container_name: raspchat
-    hostname: pnk
+  hack-chat:
+    image: jheretic/hack-chat:latest
+    container_name: hack-chat
+    restart: unless-stopped
     networks:
       - local
-    restart: unless-stopped
     ports:
-      - "3030:3030"
+      - "8888:8080"
+      - "6060:6060"
     environment:
-      - RC_URL=http://pnk:3030
-      - WS_URL=ws://pnk:3030/chat
+      - WSPROTOCOL="ws://"
+      - WSPORT="6060"
+      - WSBASEURL=""
+      - ADMIN_NAME="pnk"
+      - PASSWORD="pnk"
+      - SALT="2dSg4kS"
 
-  filedrop:
-    image: jheretic/filedrop:latest
-    container_name: filedrop
+  droppy:
+    image: silverwind/armhf-droppy
+    container_name: droppy
     restart: unless-stopped
+    networks:
+      - local
+    volumes:
+      - /srv/droppy:/config
+      - droppy_files:/files
     ports:
       - 8989:8989
-    environment:
-      - filedrop_port=8989
 
 networks:
   local:
 
 volumes:
   wordpress_data:
-  filedrop_files:
+  droppy_files:
   mariadb_data:
   unifi_config:
