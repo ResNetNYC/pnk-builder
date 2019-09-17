@@ -14,7 +14,7 @@ main() {
     check_bin curl
     check_bin docker
 
-    until curl -sf http://$PNK_HOSTNAME
+    until curl -sf -o /dev/null http://$PNK_HOSTNAME
     do
         sleep 10
     done

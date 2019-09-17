@@ -11,7 +11,7 @@ RUN git clone https://github.com/hack-chat/main.git /app \
 && ln -sT main.js server.js \
 && cd ../client \
 && npm install -g less jade http-server \
-&& apk del git make nodejs-npm \
+&& apk del git make \
 && rm -rf /var/cache/apk/* \
 && rm -rf /root \
 && mkdir -p / /root \
