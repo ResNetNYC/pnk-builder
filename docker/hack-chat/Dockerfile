@@ -3,12 +3,10 @@ MAINTAINER J
  
 RUN apk update && apk add git make nodejs nodejs-npm python
 RUN git clone https://github.com/hack-chat/main.git /app \
-&& cd /app \
-#&& git checkout 345dbfec41062408171b521f297f03e122f762c0 \
-&& cd server \
+&& cd /app/server \
 && npm install \
 && mkdir -p config \
-&& ln -sT main.js server.js \
+#&& ln -sT main.js server.js \
 && cd ../client \
 && npm install -g less jade http-server \
 && apk del git make \

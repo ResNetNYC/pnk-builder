@@ -78,9 +78,9 @@ services:
       - WSPROTOCOL="ws://"
       - WSPORT="6060"
       - WSBASEURL=""
-      - ADMIN_NAME="pnk"
-      - PASSWORD="pnk"
-      - SALT="2dSg4kS"
+      - ADMIN_NAME=pnk
+      - PASSWORD=pnk
+      - SALT=2dSg4kS
 
   droppy:
     image: silverwind/armhf-droppy
