@@ -4,16 +4,17 @@ services:
     image: arm32v7/wordpress:5
     container_name: wordpress
     depends_on:
-      - mariadb
+      - wordpress-db
     restart: unless-stopped
     networks:
       - local
+      - wordpress
     volumes:
       - wordpress_data:/var/www/html
     ports:
       - "80:80"
     environment:
-      - WORDPRESS_DB_HOST=mariadb:3306
+      - WORDPRESS_DB_HOST=wordpress-db:3306
       - WORDPRESS_DB_USER=wordpress
       - WORDPRESS_DB_PASSWORD=wordpress
       - |
@@ -21,14 +22,14 @@ services:
         define('WP_SITE_URL', 'http://pnk');
         define('WP_HOME', 'http://pnk');
 
-  mariadb:
+  wordpress-db:
     image: jsurf/rpi-mariadb:latest
-    container_name: mariadb
+    container_name: wordpress-db
     restart: unless-stopped
     networks:
-      - local
+      - wordpress
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - wordpress-db_data:/var/lib/mysql
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
       - MYSQL_DATABASE=wordpress
@@ -61,9 +62,24 @@ services:
     container_name: etherpad
     networks:
       - local
+      - etherpad
     ports:
       - "9001:9001"
     restart: unless-stopped
+
+  etherpad-db:
+    image: jsurf/rpi-mariadb:latest
+    container_name: etherpad-db
+    restart: unless-stopped
+    networks:
+      - etherpad
+    volumes:
+      - etherpad-db_data:/var/lib/mysql
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_DATABASE=etherpad
+      - MYSQL_USER=etherpad
+      - MYSQL_PASSWORD=etherpad
 
   hack-chat:
     image: jheretic/hack-chat:latest
@@ -96,9 +112,14 @@ services:
 
 networks:
   local:
+  wordpress:
+    internal: true
+  etherpad:
+    internal: true
 
 volumes:
   wordpress_data:
   droppy_files:
-  mariadb_data:
+  wordpress-db_data:
+  etherpad-db_data:
   unifi_config:
