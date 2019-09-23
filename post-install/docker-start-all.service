@@ -1,0 +1,11 @@
+[Unit]
+Description=Start all never-started Docker containers
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/etc/pnk-builder
+ExecStart=/bin/sh -c "/usr/local/bin/setup-secrets.sh && docker-compose -f /etc/pnk-builder/docker-compose.yml up -d"
+
+[Install]
+RequiredBy=multi-user.target

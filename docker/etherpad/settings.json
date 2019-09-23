@@ -133,11 +133,11 @@
 
   "dbType" : "mysql",
   "dbSettings" : {
-                   "user"    : "etherpad",
-                   "host"    : "etherpad-db",
+                   "user"    : "${MYSQL_USER:etherpad}",
+                   "host"    : "${MYSQL_HOST:etherpad-db}",
                    "port"    : 3306,
-                   "password": "etherpad",
-                   "database": "etherpad",
+                   "password": "${MYSQL_PASSWORD:etherpad}",
+                   "database": "${MYSQL_DB:etherpad}",
                    "charset" : "utf8mb4"
                  },
 

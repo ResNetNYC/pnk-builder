@@ -1,3 +1,4 @@
 cache/
 build/
 mnt/
+docker/*/qemu-arm-static

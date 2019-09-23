@@ -6,7 +6,10 @@ set -eo pipefail
 used_mktemp=false
 : ${PNK_RPI_IMAGE_URL:="https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip"}
 : ${PNK_RPI_IMAGE_SHA256SUM:="03ec326d45c6eb6cef848cf9a1d6c7315a9410b49a276a6b28e67a40b11fdfcf"}
-: ${PNK_TEMP_DIR:="$(used_mktemp=true; mktemp -d)"}
+: ${PNK_TEMP_DIR:="$(
+    used_mktemp=true
+    mktemp -d
+)"}
 : ${PNK_CACHE_DIR:="$PNK_TEMP_DIR/cache"}
 : ${PNK_MOUNT_DIR:="$PNK_TEMP_DIR/mnt"}
 : ${PNK_BUILD_DIR:="$PWD/build"}
@@ -15,10 +18,12 @@ used_mktemp=false
 : ${PNK_HOSTNAME:="pnk"}
 : ${PNK_WORDPRESS_IMPORTER_URL:="https://downloads.wordpress.org/plugin/wordpress-importer.0.6.4.zip"}
 
-
 check_bin() {
     local -r cmd="$1"
-    hash "$cmd" 2>/dev/null || { printf "Need command %s but it is not found. Aborting." "$cmd"; exit 1; }
+    hash "$cmd" 2>/dev/null || {
+        printf "Need command %s but it is not found. Aborting." "$cmd"
+        exit 1
+    }
 }
 
 download_raspbian() {
@@ -31,10 +36,13 @@ download_raspbian() {
     # Download Raspbian
     if [[ ! -e "$cache_dir/$file" ]]; then
         curl -o "$cache_dir/$file" -L "$url" ||
-            { echo "Failed to download raspbian."; return 1; }
+            {
+                echo "Failed to download raspbian."
+                return 1
+            }
     fi
-    
-    if ! ( echo "$sha256sum $cache_dir/$file" | sha256sum -c ); then
+
+    if ! (echo "$sha256sum $cache_dir/$file" | sha256sum -c); then
         echo "Invalid checksum for raspbian image."
         rm -f "$cache_dir/$file"
         return 1
@@ -62,14 +70,12 @@ resize_image() {
     }
 }
 
-
-
 setup_chroot() {
     local -r image="$1"
     local -r mount_dir="$2"
 
     # Map sdcard partitions
-    local output=( $(kpartx -s -a -v "$image") ) || {
+    local output=($(kpartx -s -a -v "$image")) || {
         echo "Failed to map raspbian, invalid image?"
         return 1
     }
@@ -86,8 +92,8 @@ setup_chroot() {
     printf "Mounting %s and %s at %s.\n" "${output[11]}" "${output[2]}" "$mount_dir"
 
     {
-        mount "/dev/mapper/${output[11]}" "$mount_dir" && \
-        mount "/dev/mapper/${output[2]}" "$mount_dir/boot/"
+        mount "/dev/mapper/${output[11]}" "$mount_dir" &&
+            mount "/dev/mapper/${output[2]}" "$mount_dir/boot/"
     } || {
         echo "Failed to mount chroot system directories."
         return 1
@@ -107,19 +113,19 @@ setup_chroot() {
 
     # add shims since we can't start services
     systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
-    "/usr/bin/dpkg-divert --add --rename --local /sbin/start-stop-daemon && \
+        "/usr/bin/dpkg-divert --add --rename --local /sbin/start-stop-daemon && \
     /usr/bin/dpkg-divert --add --rename --local /usr/sbin/policy-rc.d" || {
         echo "Failed to divert service tools."
         return 1
     }
 
-cat <<'EOF' > "$mount_dir/sbin/start-stop-daemon"
+    cat <<'EOF' >"$mount_dir/sbin/start-stop-daemon"
 #!/bin/sh
 echo "Warning: Fake start-stop-daemon called, doing nothing"
 EOF
     chmod +x "$mount_dir/sbin/start-stop-daemon"
 
-cat <<'EOF' > "$mount_dir/usr/sbin/policy-rc.d"
+    cat <<'EOF' >"$mount_dir/usr/sbin/policy-rc.d"
 #!/bin/sh
 exit 101
 EOF
@@ -127,11 +133,11 @@ EOF
 
     # Generate locales and install packages
     systemd-nspawn --capability=all -D "$mount_dir" /bin/sh -c \
-    "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
+        "echo en_US.UTF-8 UTF-8 > /etc/locale.gen && \
     /usr/sbin/locale-gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
     apt-get -qq update && \
-    apt-get install -y --no-install-recommends curl git libffi-dev python python-dev python-setuptools python-pip python-backports.ssl-match-hostname python-cffi python-nacl libssl-dev" || {
+    apt-get install -y --no-install-recommends curl git libffi-dev python python-dev python-setuptools python-pip python-backports.ssl-match-hostname python-cffi python-nacl libssl-dev pwgen" || {
         echo "Failed to initialize chroot locale and install dependencies."
         return 1
     }
@@ -143,7 +149,7 @@ setup_hostname() {
     local -r mount_dir="$3"
 
     sed -i -e "s/${old_hostname}/${new_hostname}/" "$mount_dir/etc/hosts"
-    echo "$new_hostname" > "$mount_dir/etc/hostname"
+    echo "$new_hostname" >"$mount_dir/etc/hostname"
 }
 
 setup_docker() {
@@ -163,12 +169,15 @@ setup_docker() {
     }
 
     # Install and enable docker-start-all service
-    install -Dm644 "$PWD/docker-start-all.service" "$mount_dir/etc/systemd/system/"
+    install -Dm644 "$PWD/post-install/docker-start-all.service" "$mount_dir/etc/systemd/system/"
     ln -sf "/etc/systemd/system/docker-start-all.service" "$mount_dir/etc/systemd/system/multi-user.target.wants/docker-start-all.service"
 
+    # Install setup-secrets.sh script
+    install -Dm755 "$PWD/post-install/setup-secrets.sh" "$mount_dir/usr/local/bin/"
+
     # Install and enable setup-wordpress service
-    install -Dm644 "$PWD/setup-wordpress.service" "$mount_dir/etc/systemd/system/"
-    install -Dm755 "$PWD/setup-wordpress.sh" "$mount_dir/usr/local/bin/"
+    install -Dm644 "$PWD/post-install/setup-wordpress.service" "$mount_dir/etc/systemd/system/"
+    install -Dm755 "$PWD/post-install/setup-wordpress.sh" "$mount_dir/usr/local/bin/"
     ln -sf "/etc/systemd/system/setup-wordpress.service" "$mount_dir/etc/systemd/system/multi-user.target.wants/setup-wordpress.service"
 
     # Stop local docker
@@ -184,7 +193,7 @@ setup_docker() {
 
     # Start local docker
     service docker start
-    
+
     # Template docker-compose file
     sed -i -e "s/{{ PNK_HOST }}/${domain}/g" "$PWD/docker-compose.yml"
 
@@ -196,12 +205,11 @@ setup_docker() {
     docker pull arm32v7/wordpress:cli
 
     # Build local images
-    #for i in $PWD/docker/*
-    #do
-    #    local name="$(basename $i)"
-    #    cp "/usr/bin/qemu-arm-static" "$PWD/docker/$name"
-    #    docker build -t "$name:local" "$PWD/docker/$name"
-    #done
+    for i in $PWD/docker/*; do
+        local name="$(basename $i)"
+        cp "/usr/bin/qemu-arm-static" "$PWD/docker/$name"
+        docker build -t "$name:local" "$PWD/docker/$name"
+    done
 
     # Setup images
     docker-compose up --no-start || {
@@ -218,7 +226,10 @@ setup_configs() {
     cp -rf "$PWD/configs/droppy" "$mount_dir/srv/"
     cp -rf "$PWD/configs/wordpress" "$mount_dir/srv/"
     curl -o "$mount_dir/srv/wordpress/wordpress-importer.zip" -L "$wp_url" ||
-        { echo "Failed to download wordpress importer plugin."; return 1; }
+        {
+            echo "Failed to download wordpress importer plugin."
+            return 1
+        }
 }
 
 cleanup() {
@@ -226,7 +237,7 @@ cleanup() {
     rm "$PNK_MOUNT_DIR/sbin/start-stop-daemon"
     rm "$PNK_MOUNT_DIR/usr/sbin/policy-rc.d"
     systemd-nspawn --capability=all -D "$PNK_MOUNT_DIR" /bin/sh -c \
-    "/usr/bin/dpkg-divert --remove --rename --local /sbin/start-stop-daemon && \
+        "/usr/bin/dpkg-divert --remove --rename --local /sbin/start-stop-daemon && \
     /usr/bin/dpkg-divert --remove --rename --local /usr/sbin/policy-rc.d"
 
     # Unmount & clean up
@@ -256,13 +267,12 @@ main() {
     check_bin systemd-nspawn
     check_bin umount
 
-
     # Create build directories if they don't exist.
-    local directories=( "$PNK_TEMP_DIR" "$PNK_CACHE_DIR" "$PNK_MOUNT_DIR" "$PNK_BUILD_DIR" )
+    local directories=("$PNK_TEMP_DIR" "$PNK_CACHE_DIR" "$PNK_MOUNT_DIR" "$PNK_BUILD_DIR")
     for dir in "${directories[@]}"; do
         if [[ ! -d "$dir" ]]; then
-            mkdir -p "$dir" || \
-                { 
+            mkdir -p "$dir" ||
+                {
                     printf "Failed to create directory %s. Aborting" "$dir"
                     exit 1
                 }
@@ -272,7 +282,7 @@ main() {
     local image="${PNK_RPI_IMAGE_URL##*/}"
     image="${image%.zip}.img"
     download_raspbian "$PNK_RPI_IMAGE_URL" "$PNK_RPI_IMAGE_SHA256SUM" "$PNK_CACHE_DIR" "$PNK_TEMP_DIR" || exit 1
-    if [[ "$PNK_EXTEND_MB" -gt 0 ]];  then
+    if [[ "$PNK_EXTEND_MB" -gt 0 ]]; then
         resize_image "$PNK_TEMP_DIR/$image" "$PNK_EXTEND_MB" || exit 1
     fi
     setup_chroot "$PNK_TEMP_DIR/$image" "$PNK_MOUNT_DIR" || exit 1
@@ -284,4 +294,3 @@ main() {
 }
 
 main "$@"
-

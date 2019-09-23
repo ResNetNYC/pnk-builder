@@ -16,7 +16,7 @@ services:
     environment:
       - WORDPRESS_DB_HOST=wordpress-db:3306
       - WORDPRESS_DB_USER=wordpress
-      - WORDPRESS_DB_PASSWORD=wordpress
+      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB:-wordpress}
       - |
         WORDPRESS_CONFIG_EXTRA=
         define('WP_SITE_URL', 'http://pnk');
@@ -34,7 +34,7 @@ services:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
       - MYSQL_DATABASE=wordpress
       - MYSQL_USER=wordpress
-      - MYSQL_PASSWORD=wordpress
+      - MYSQL_PASSWORD=${WORDPRESS_DB:-wordpress}
 
   unifi:
     image: linuxserver/unifi-controller:arm32v7-latest
@@ -63,6 +63,8 @@ services:
     networks:
       - local
       - etherpad
+    environment:
+      - MYSQL_PASSWORD=${ETHERPAD_DB:-etherpad}
     ports:
       - "9001:9001"
     restart: unless-stopped
@@ -79,7 +81,7 @@ services:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
       - MYSQL_DATABASE=etherpad
       - MYSQL_USER=etherpad
-      - MYSQL_PASSWORD=etherpad
+      - MYSQL_PASSWORD=${ETHERPAD_DB:-etherpad}
 
   hack-chat:
     image: jheretic/hack-chat:latest
@@ -95,8 +97,8 @@ services:
       - WSPORT="6060"
       - WSBASEURL=""
       - ADMIN_NAME=pnk
-      - PASSWORD=pnk
-      - SALT=2dSg4kS
+      - PASSWORD=${HACKCHAT:-pnk}
+      - SALT=${HACKCHAT_SALT:-2dSg4kS}
 
   droppy:
     image: silverwind/armhf-droppy
