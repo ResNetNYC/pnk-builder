@@ -20,11 +20,7 @@ services:
   - docker
 install: true
 env:
-  - PNK_CACHE_DIR=./cache
-  - PNK_OUTPUT_FILE=./build/pnk.img
-  - PNK_EXTEND_MB=3000
-  - PNK_VERSION="$(git log --format=%h -1)"
-  - PNK_DATE="$(date +%F)"
+  - PNK_CACHE_DIR=./cache PNK_OUTPUT_FILE=./build/pnk.img PNK_EXTEND_MB=3000 PNK_VERSION="$(git log --format=%h -1)" PNK_DATE="$(date +%F)"
 script:
   - sudo bash ./build.sh
 before_deploy:
