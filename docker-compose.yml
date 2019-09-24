@@ -60,10 +60,13 @@ services:
   etherpad:
     image: jheretic/etherpad:latest
     container_name: etherpad
+    depends_on:
+      - etherpad-db
     networks:
       - local
       - etherpad
     environment:
+      - NODE_ENV=production
       - MYSQL_PASSWORD=${ETHERPAD_DB:-etherpad}
     ports:
       - "9001:9001"

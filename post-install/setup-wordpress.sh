@@ -27,7 +27,12 @@ main() {
             wp core install --path=/var/www/html --url=$PNK_HOSTNAME --title=PNK --admin_user=pnk --admin_password=pnk --admin_email=contact@pnkgo.com --skip-email;
             wp site empty --path=/var/www/html --yes;
             wp plugin install --path=/var/www/html --activate /files/wordpress-importer.zip;
-            wp import --path=/var/www/html /files/pnk.WordPress.xml --authors=create"
+            wp import --path=/var/www/html /files/pnk.WordPress.xml --authors=create;
+            wp option update blogdescription "Portable Network Kit" --path=/var/www/html;
+            wp menu assign services menu-1 --path=/var/www/html;
+            wp menu assign services footer --path=/var/www/html;
+
+            "
         exit
     }
     echo "Wordpress already installed."
