@@ -34,4 +34,4 @@ deploy:
   skip_cleanup: true
   draft: true
   on:
-    repo: resnetnyc/pnk-builder
+    repo: ResNetNYC/pnk-builder
