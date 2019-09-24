@@ -30,9 +30,7 @@ main() {
             wp import --path=/var/www/html /files/pnk.WordPress.xml --authors=create;
             wp option update blogdescription "Portable Network Kit" --path=/var/www/html;
             wp menu assign services menu-1 --path=/var/www/html;
-            wp menu assign services footer --path=/var/www/html;
-
-            "
+            wp menu assign services footer --path=/var/www/html"
         exit
     }
     echo "Wordpress already installed."
