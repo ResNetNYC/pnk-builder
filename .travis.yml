@@ -11,6 +11,7 @@ addons:
     update: true
     packages:
     - kpartx
+    - qemu-user-static
     - parted
     - e2fsprogs
     - systemd-container
