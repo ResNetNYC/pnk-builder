@@ -17,6 +17,7 @@ used_mktemp=false
 : ${PNK_EXTEND_MB:="0"}
 : ${PNK_HOSTNAME:="pnk"}
 : ${PNK_WORDPRESS_IMPORTER_URL:="https://downloads.wordpress.org/plugin/wordpress-importer.0.6.4.zip"}
+: ${PNK_QEMU_URL:="https://github.com/multiarch/qemu-user-static/releases/download/v4.1.0-1/qemu-arm-static"}
 
 check_bin() {
     local -r cmd="$1"
@@ -106,7 +107,12 @@ setup_chroot() {
     fi
 
     # Add static qemu so we can run ARM binaries
-    cp "/usr/bin/qemu-arm-static" "$mount_dir/usr/bin"
+    curl -o "$mount_dir/usr/bin/qemu-arm-static" -L "$PNK_QEMU_URL" || {
+        echo "Failed to download qemu-arm-static."
+        return 1
+    }
+
+    chmod +x "$mount_dir/usr/bin/qemu-arm-static"
 
     # enable SSH
     touch "$mount_dir/boot/ssh"
