@@ -10,7 +10,7 @@ We use [Travis CI](https://travis-ci.org) as a tool to automatically build Raspb
 4. After `build.sh` finishes running docker-compose and otherwise setting things up, Travis zips up the resulting customized Raspbian image and uploads it as a draft Github release (it is up to the PNK maintainers to make that image published publicly).
 5. When the image is installed on a Raspberry Pi, docker-compose (which was also installed into the image) is run to finish the setup of the Docker applications. This may take a few minutes. In addition, two scripts are run: the first generates some random credentials for the applications' databases, and the other waits until Wordpress has started and does some additional configuration (setting the default password, installing plugins, etc). After the setup is complete, you have a fully-functional PNK server!
 
-For specific instructions on building the kit, go to [http://pnkgo.com](http://pnkgo.com).
+For specific instructions on building the kit, go to [https://communitytechny.org/portable-network-kits/](https://communitytechny.org/portable-network-kits/).
 
 ## What's in this repository?
 
