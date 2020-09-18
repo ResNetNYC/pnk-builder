@@ -1,5 +1,5 @@
 # pnk-builder
-This is the build pipeline for the [Portable Network Kit](http://pnkgo.com). It is designed to generate Raspberry Pi images that work as local community servers as part of the kit. These servers include applications such as [Wordpress](https://wordpress.com), chatrooms, filesharing, and [Etherpad](https://etherpad.org).
+This is the build pipeline for the [Portable Network Kit](https://communitytechny.org/portable-network-kits/). It is designed to generate Raspberry Pi images that work as local community servers as part of the kit. These servers include applications such as [Wordpress](https://wordpress.com), chatrooms, filesharing, and [Etherpad](https://etherpad.org).
 
 ## How does it work?
 We use [Travis CI](https://travis-ci.org) as a tool to automatically build Raspberry Pi images. Whenever a change is commited to this repository, a build is automatically triggered and the following things happen:
@@ -29,4 +29,4 @@ README.md # This file you're reading now! Hi!
 ## License
 [<img src="https://www.gnu.org/graphics/gplv3-127x51.png" alt="GPLv3" >](http://www.gnu.org/licenses/gpl-3.0.html)
 
-pnk-builder is part of the [Portable Network Kit](http://pnkgo.com) project and is distributed as a free software project licensed under the GNU General Public License v3.0 (GPLv3).
+pnk-builder is part of the [Portable Network Kit](https://communitytechny.org/portable-network-kits/) project and is distributed as a free software project licensed under the GNU General Public License v3.0 (GPLv3).
